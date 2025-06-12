@@ -1,13 +1,5 @@
 [
     {
-        "photo_path": "images/sample-2.jpg",
-        "full_address": "上海市浦东新区某某小区",
-        "age": "28",
-        "price": "￥600",
-        "height": "170cm",
-        "weight": "55kg"
-    },
-    {
         "photo_path": "images/1749730192376.jpg",
         "full_address": "天津市北辰区",
         "age": "20+",
