@@ -1,0 +1,888 @@
+﻿import tkinter as tk
+from tkinter import messagebox, filedialog
+import sqlite3
+import tkinter.ttk as ttk
+import os
+import shutil
+from PIL import Image, ImageTk
+import json
+import subprocess # 用于执行 Git 命令
+
+# 移除 python-pptx 相关导入和检查
+# try:
+#     from pptx import Presentation
+#     from pptx.util import Inches
+#     from pptx.enum.text import PP_ALIGN
+#     from pptx.enum.shapes import MSO_VERTICAL_ALIGNMENT
+#     PPTX_AVAILABLE = True
+# except ImportError:
+#     PPTX_AVAILABLE = False
+
+class AddressManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("地址照片管理软件")
+
+        # 设置窗口初始大小
+        self.root.geometry("1200x800") # 调整窗口大小以容纳更多内容
+
+        # 文件路径设置
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.data_file_path = os.path.join(self.base_dir, 'data.json')
+        self.images_dir = os.path.join(self.base_dir, 'images')
+
+        # 确保 images 文件夹存在
+        if not os.path.exists(self.images_dir):
+            os.makedirs(self.images_dir)
+
+        # 检查Pillow是否安装
+        try:
+            from PIL import Image, ImageTk
+        except ImportError:
+            messagebox.showerror("错误", "Pillow库未安装。请运行 'pip install Pillow' 进行安装。")
+            self.root.destroy()
+            return
+
+        # 移除 python-pptx 检查
+        # if not PPTX_AVAILABLE:
+        #     messagebox.showwarning("缺少库", "未安装 'python-pptx' 库。导出PPT功能将不可用。请运行 'pip install python-pptx' 进行安装。")
+
+        # 应用 ttk 主题
+        self.style = ttk.Style()
+        self.style.theme_use('vista')
+
+        self.style.configure('TButton', background='#4CAF50', foreground='white', font=('Arial', 10, 'bold'))
+        self.style.map('TButton', background=[('active', '#45a049')])
+        self.style.configure('Danger.TButton', background='#f44336', foreground='white', font=('Arial', 10, 'bold'))
+        self.style.map('Danger.TButton', background=[('active', '#da190b')])
+
+        # 连接或创建数据库
+        self.conn = sqlite3.connect('addresses.db')
+        self.cursor = self.conn.cursor()
+
+        # 创建一个 Notebook (标签页) 来组织不同功能
+        self.notebook = ttk.Notebook(root)
+        self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # 地址管理标签页
+        self.address_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.address_tab, text="地址管理")
+
+        # 照片上传与网站更新标签页
+        self.photo_upload_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.photo_upload_tab, text="照片上传与网站更新")
+
+        # 在 content_frame (现在是 address_tab) 创建之后调用 create_table
+        self.create_table()
+
+        # 创建界面元素
+        self.create_widgets(self.address_tab) # 地址管理界面
+        self.create_photo_uploader_widgets(self.photo_upload_tab) # 照片上传界面
+
+        # 初始填充省份下拉框
+        self.populate_provinces()
+
+    def _on_mouse_wheel(self, event):
+        # 此方法不再直接用于主窗口，但如果地址管理选项卡内有Canvas，则需要绑定
+        pass # 目前主窗口使用Notebook，Canvas可能不再是主滚动区域
+
+    def _on_frame_configure(self, event):
+        """更新 Canvas 的滚动区域以匹配内容 Frame 的大小"""
+        # 由于引入了 Notebook，此方法可能需要调整其作用的Canvas
+        pass # 目前不直接使用此方法
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS addresses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                province TEXT NOT NULL,
+                city TEXT NOT NULL,
+                street TEXT,
+                full_address TEXT NOT NULL,
+                remark TEXT,
+                phone TEXT,
+                wechat TEXT,
+                qq TEXT,
+                price TEXT,
+                project TEXT,
+                photo_path TEXT,
+                age TEXT,
+                duration_hours TEXT,
+                height TEXT,
+                weight TEXT
+            )
+        ''')
+        self.conn.commit()
+
+    def create_widgets(self, parent_frame):
+        # 地址输入区域
+        input_frame = tk.LabelFrame(parent_frame, text="添加新地址", bg='#e0e0e0', fg='#333333')
+        input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        ttk.Label(input_frame, text="省份:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.province_entry = ttk.Entry(input_frame, width=40)
+        self.province_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="城市:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.city_entry = ttk.Entry(input_frame, width=40)
+        self.city_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="详细地址:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        self.street_entry = ttk.Entry(input_frame, width=40)
+        self.street_entry.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="备注:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
+        self.remark_entry = ttk.Entry(input_frame, width=40)
+        self.remark_entry.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="电话:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
+        self.phone_entry = ttk.Entry(input_frame, width=18)
+        self.phone_entry.grid(row=4, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="微信:").grid(row=4, column=2, padx=5, pady=5, sticky="w")
+        self.wechat_entry = ttk.Entry(input_frame, width=18)
+        self.wechat_entry.grid(row=4, column=3, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="QQ:").grid(row=5, column=0, padx=5, pady=5, sticky="w")
+        self.qq_entry = ttk.Entry(input_frame, width=18)
+        self.qq_entry.grid(row=5, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="价格:").grid(row=5, column=2, padx=5, pady=5, sticky="w")
+        self.price_entry = ttk.Entry(input_frame, width=18)
+        self.price_entry.grid(row=5, column=3, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="项目:").grid(row=6, column=0, padx=5, pady=5, sticky="w")
+        self.project_entry = ttk.Entry(input_frame, width=18)
+        self.project_entry.grid(row=6, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="照片:").grid(row=6, column=2, padx=5, pady=5, sticky="w")
+        photo_frame = ttk.Frame(input_frame)
+        photo_frame.grid(row=6, column=3, padx=5, pady=5, sticky="ew")
+
+        self.photo_path_entry = ttk.Entry(photo_frame, width=10)
+        self.photo_path_entry.pack(side=tk.LEFT, fill="x", expand=True)
+
+        ttk.Button(photo_frame, text="选择照片", command=self.select_photo).pack(side=tk.LEFT)
+
+        ttk.Label(input_frame, text="年龄:").grid(row=7, column=0, padx=5, pady=5, sticky="w")
+        self.age_entry = ttk.Entry(input_frame, width=18)
+        self.age_entry.grid(row=7, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="时长(小时):").grid(row=7, column=2, padx=5, pady=5, sticky="w")
+        self.duration_hours_entry = ttk.Entry(input_frame, width=18)
+        self.duration_hours_entry.grid(row=7, column=3, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="身高:").grid(row=8, column=0, padx=5, pady=5, sticky="w")
+        self.height_entry = ttk.Entry(input_frame, width=18)
+        self.height_entry.grid(row=8, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Label(input_frame, text="体重:").grid(row=8, column=2, padx=5, pady=5, sticky="w")
+        self.weight_entry = ttk.Entry(input_frame, width=18)
+        self.weight_entry.grid(row=8, column=3, padx=5, pady=5, sticky="ew")
+
+        self.add_button = ttk.Button(input_frame, text="添加地址", command=self.add_address, style='TButton')
+        self.add_button.grid(row=9, column=3, padx=5, pady=5, sticky="e")
+
+        clear_button = ttk.Button(input_frame, text="清空", command=self.clear_input_fields)
+        clear_button.grid(row=9, column=0, padx=5, pady=5, sticky="w")
+
+        input_frame.grid_columnconfigure(1, weight=1)
+        input_frame.grid_columnconfigure(3, weight=1)
+
+        # 地址查询区域
+        query_frame = tk.LabelFrame(parent_frame, text="查询地址", bg='#e0e0e0', fg='#333333')
+        query_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+        query_frame.grid_columnconfigure(1, weight=1)
+
+        ttk.Label(query_frame, text="选择省份:").grid(row=0, column=0, padx=5, pady=5)
+        self.province_var = tk.StringVar()
+        self.province_combobox = ttk.Combobox(query_frame, textvariable=self.province_var, state="readonly")
+        self.province_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.province_combobox.bind("<<ComboboxSelected>>", self.on_province_select)
+
+        ttk.Label(query_frame, text="选择城市:").grid(row=1, column=0, padx=5, pady=5)
+        self.city_var = tk.StringVar()
+        self.city_combobox = ttk.Combobox(query_frame, textvariable=self.city_var, state="readonly")
+        self.city_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Button(query_frame, text="查询", command=self.search_addresses, style='TButton').grid(row=2, column=1, padx=5, pady=5, sticky="e")
+
+        ttk.Label(query_frame, text="搜索关键词:").grid(row=3, column=0, padx=5, pady=5)
+        self.search_entry = ttk.Entry(query_frame, width=40)
+        self.search_entry.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
+
+        ttk.Button(query_frame, text="文本搜索", command=self.search_by_text, style='TButton').grid(row=4, column=1, padx=5, pady=5, sticky="e")
+
+        # 地址列表显示区域
+        result_frame = tk.LabelFrame(parent_frame, text="查询结果", bg='#e0e0e0', fg='#333333')
+        result_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+
+        self.address_listbox = tk.Listbox(result_frame, width=80, height=10)
+        self.address_listbox.pack(padx=5, pady=5, fill="both", expand=True)
+        self.address_listbox.bind('<Double-Button-1>', self.show_detail_popup)
+
+        self.address_listbox_scrollbar_x = ttk.Scrollbar(result_frame, orient=tk.HORIZONTAL)
+        self.address_listbox_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=0)
+
+        self.address_listbox.config(xscrollcommand=self.address_listbox_scrollbar_x.set)
+        self.address_listbox_scrollbar_x.config(command=self.address_listbox.xview)
+
+        button_frame = ttk.Frame(result_frame)
+        button_frame.pack(pady=5)
+
+        delete_button = ttk.Button(button_frame, text="删除选中地址", command=self.delete_address, style='Danger.TButton')
+        delete_button.pack(side=tk.LEFT, padx=5)
+
+        edit_button = ttk.Button(button_frame, text="编辑选中地址", command=self.edit_address, style='TButton')
+        edit_button.pack(side=tk.LEFT, padx=5)
+
+        clear_results_button = ttk.Button(button_frame, text="清空查询结果", command=self.clear_results, style='TButton')
+        clear_results_button.pack(side=tk.LEFT, padx=5)
+
+        view_photo_button = ttk.Button(button_frame, text="查看照片", command=self.view_photo, style='TButton')
+        view_photo_button.pack(side=tk.LEFT, padx=5)
+
+        copy_button = ttk.Button(button_frame, text="复制选中内容", command=self.copy_selected_address, style='TButton')
+        copy_button.pack(side=tk.LEFT, padx=5)
+
+        parent_frame.grid_columnconfigure(0, weight=1)
+        parent_frame.grid_columnconfigure(1, weight=1)
+        parent_frame.grid_rowconfigure(1, weight=1)
+
+
+    def create_photo_uploader_widgets(self, parent_frame):
+        # 照片上传区域
+        upload_frame = tk.LabelFrame(parent_frame, text="上传照片到网站", bg='#e0e0e0', fg='#333333')
+        upload_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        tk.Label(upload_frame, text="照片文件:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.upload_photo_path_entry = tk.Entry(upload_frame, width=60)
+        self.upload_photo_path_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        tk.Button(upload_frame, text="选择照片", command=self.select_photo_for_upload).grid(row=0, column=2, padx=5, pady=5)
+
+        tk.Label(upload_frame, text="完整地址:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.upload_full_address_entry = tk.Entry(upload_frame, width=60)
+        self.upload_full_address_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+
+        tk.Label(upload_frame, text="年龄:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        self.upload_age_entry = tk.Entry(upload_frame, width=60)
+        self.upload_age_entry.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+
+        tk.Label(upload_frame, text="价格:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
+        self.upload_price_entry = tk.Entry(upload_frame, width=60)
+        self.upload_price_entry.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
+
+        tk.Label(upload_frame, text="身高:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
+        self.upload_height_entry = tk.Entry(upload_frame, width=60)
+        self.upload_height_entry.grid(row=4, column=1, padx=5, pady=5, sticky="ew")
+
+        tk.Label(upload_frame, text="体重:").grid(row=5, column=0, padx=5, pady=5, sticky="w")
+        self.upload_weight_entry = tk.Entry(upload_frame, width=60)
+        self.upload_weight_entry.grid(row=5, column=1, padx=5, pady=5, sticky="ew")
+
+        tk.Button(upload_frame, text="添加照片并更新网站", command=self.add_photo_and_update_website).grid(row=6, column=1, padx=5, pady=10, sticky="e")
+        tk.Button(upload_frame, text="清空输入", command=self.clear_uploader_fields).grid(row=6, column=0, padx=5, pady=10, sticky="w")
+
+        upload_frame.grid_columnconfigure(1, weight=1) # 让输入框可以伸展
+
+    def select_photo(self):
+        """地址管理页面选择照片"""
+        filename = filedialog.askopenfilename(
+            title="选择照片文件",
+            filetypes=(("Image files", "*.jpg *.jpeg *.png *.gif"), ("All files", "*.*"))
+        )
+        if filename:
+            self.photo_path_entry.delete(0, tk.END)
+            self.photo_path_entry.insert(0, filename)
+
+    def select_photo_for_upload(self):
+        """照片上传页面选择照片"""
+        filename = filedialog.askopenfilename(
+            title="选择照片文件",
+            filetypes=(("Image files", "*.jpg *.jpeg *.png *.gif"), ("All files", "*.*"))
+        )
+        if filename:
+            self.upload_photo_path_entry.delete(0, tk.END)
+            self.upload_photo_path_entry.insert(0, filename)
+
+    def add_address(self):
+        province = self.province_entry.get().strip()
+        city = self.city_entry.get().strip()
+        street = self.street_entry.get().strip()
+        full_address = f"{province}{city}{street}"
+        remark = self.remark_entry.get().strip()
+        phone = self.phone_entry.get().strip()
+        wechat = self.wechat_entry.get().strip()
+        qq = self.qq_entry.get().strip()
+        price = self.price_entry.get().strip()
+        project = self.project_entry.get().strip()
+        photo_path = self.photo_path_entry.get().strip()
+        age = self.age_entry.get().strip()
+        duration_hours = self.duration_hours_entry.get().strip()
+        height = self.height_entry.get().strip()
+        weight = self.weight_entry.get().strip()
+
+        if not province or not city or not street:
+            messagebox.showwarning("输入错误", "省份、城市和详细地址都不能为空")
+            return
+
+        try:
+            self.cursor.execute("SELECT COUNT(*) FROM addresses WHERE phone = ? AND wechat = ? AND qq = ?",
+                                (phone, wechat, qq))
+            count = self.cursor.fetchone()[0]
+
+            if count > 0:
+                messagebox.showwarning("重复", "已存在相同电话、微信和 QQ 的记录，无法添加。")
+                return
+
+        except Exception as e:
+            messagebox.showerror("数据库错误", f"检查重复项失败: {e}")
+            return
+
+        try:
+            self.cursor.execute("INSERT INTO addresses (province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                (province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight))
+            self.conn.commit()
+            messagebox.showinfo("成功", "地址添加成功")
+            self.clear_input_fields()
+            self.populate_provinces()
+        except Exception as e:
+            messagebox.showerror("错误", f"添加地址失败: {e}")
+
+    def add_photo_and_update_website(self):
+        original_photo_path = self.upload_photo_path_entry.get().strip()
+        full_address = self.upload_full_address_entry.get().strip()
+        age = self.upload_age_entry.get().strip()
+        price = self.upload_price_entry.get().strip()
+        height = self.upload_height_entry.get().strip()
+        weight = self.upload_weight_entry.get().strip()
+
+        if not original_photo_path or not full_address:
+            messagebox.showwarning("输入错误", "照片文件和完整地址不能为空。")
+            return
+
+        # 1. 复制照片到 images 文件夹
+        try:
+            photo_filename = os.path.basename(original_photo_path)
+            destination_photo_path = os.path.join(self.images_dir, photo_filename)
+            shutil.copy2(original_photo_path, destination_photo_path)
+            web_photo_path = f"images/{photo_filename}"
+        except Exception as e:
+            messagebox.showerror("文件错误", f"复制照片失败: {e}")
+            return
+
+        # 2. 更新 data.json
+        new_entry = {
+            "photo_path": web_photo_path,
+            "full_address": full_address,
+            "age": age,
+            "price": price,
+            "height": height,
+            "weight": weight
+        }
+
+        try:
+            if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
+                with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
+                    data = json.load(f)
+            else:
+                data = []
+
+            data.append(new_entry)
+
+            with open(self.data_file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            
+            messagebox.showinfo("成功", "照片信息已成功添加到数据文件。")
+            self.clear_uploader_fields()
+            
+            # 3. 执行 Git 命令并推送到 GitHub
+            self.run_git_commands()
+
+        except Exception as e:
+            messagebox.showerror("数据错误", f"更新数据文件失败: {e}")
+
+    def run_git_commands(self):
+        try:
+            # 确保当前目录是 Git 仓库的根目录
+            os.chdir(self.base_dir)
+
+            # 读取个人访问令牌
+            pat = None
+            pat_file_path = os.path.join(self.base_dir, 'github_pat.txt')
+            if os.path.exists(pat_file_path):
+                with open(pat_file_path, 'r', encoding='utf-8') as f:
+                    pat = f.read().strip()
+            
+            if not pat:
+                messagebox.showerror("Git 错误", "未找到个人访问令牌（PAT）。请在 \'github_pat.txt\' 文件中放置您的 PAT。")
+                return
+
+            messagebox.showinfo("Git 操作", "正在执行 Git 操作，请稍候...")
+
+            # git add .
+            subprocess.run(["git", "add", "."], check=True, cwd=self.base_dir)
+
+            # git commit -m "Update photo gallery and data"
+            commit_message = f"Update photo gallery: Add {os.path.basename(self.upload_photo_path_entry.get().strip())}"
+            subprocess.run(["git", "commit", "-m", commit_message], check=True, cwd=self.base_dir)
+
+            # git push origin main，使用 PAT 进行认证
+            # 方式一：通过 URL 传递 PAT (不推荐，因为它会显示在进程列表中)
+            # remote_url = f"https://{pat}@github.com/你的用户名/Information.git" # 请替换为你的实际用户名和仓库名
+            # subprocess.run(["git", "push", remote_url, "main"], check=True, cwd=self.base_dir)
+
+            # 方式二：通过环境变量传递 PAT (更安全)
+            env = os.environ.copy()
+            env['GIT_ASKPASS'] = 'echo'
+            env['GIT_USERNAME'] = 'fdhyeryufhwe' # 替换为你的 GitHub 用户名
+            env['GIT_PASSWORD'] = pat
+            
+            # 注意：如果你的远程 URL 是 https://github.com/fdhyeryufhwe/Information.git
+            # 则需要将 'your-github-username' 替换为 'fdhyeryufhwe' 
+            # 如果不确定，请运行 git remote -v 查看你的远程 URL
+            # 或者直接移除 env['GIT_USERNAME'] 和 env['GIT_PASSWORD']，依赖 Git Credential Manager
+            # 由于之前遇到凭证问题，我们尝试使用这种方式。
+            
+            # 请根据你的实际 GitHub 用户名和仓库名来构建 URL
+            # 或者更简单的，让 Git 自己去管理凭证，如果它已经配置好 GCM
+            # 如果你之前没有成功设置 GCM，这里会是 Git 认证的难点
+            
+            # 暂时不直接在 subprocess 中传入用户名和密码
+            # 而是依赖 Git 凭证管理器或环境变量（如果配置了 GIT_ASKPASS 等）
+            # 鉴于之前多次认证失败，我们先尝试最简单的方式，依赖 Git 已有的凭证设置
+
+            subprocess.run(["git", "push", "origin", "main"], check=True, cwd=self.base_dir, env=env)
+
+            messagebox.showinfo("Git 操作成功", "所有更改已成功推送到 GitHub！网站将在几分钟内更新。")
+
+        except subprocess.CalledProcessError as e:
+            error_message = f"Git 命令执行失败: {e}\n"
+            if e.stderr:
+                error_message += e.stderr.decode('utf-8', errors='ignore')
+            messagebox.showerror("Git 错误", error_message)
+        except FileNotFoundError:
+            messagebox.showerror("Git 错误", "未找到 Git 命令。请确保 Git 已正确安装并配置到系统PATH中。")
+        except Exception as e:
+            messagebox.showerror("未知错误", f"执行 Git 操作时发生未知错误: {e}")
+
+    def populate_provinces(self):
+        try:
+            self.cursor.execute("SELECT DISTINCT province FROM addresses ORDER BY province")
+            provinces = [row[0] for row in self.cursor.fetchall()]
+            self.province_combobox['values'] = provinces
+            self.city_combobox['values'] = []
+            self.city_var.set('')
+            self.address_listbox.delete(0, tk.END)
+        except Exception as e:
+            print(f"获取省份失败: {e}")
+
+    def on_province_select(self, event=None):
+        selected_province = self.province_var.get()
+        if selected_province:
+            try:
+                self.cursor.execute("SELECT DISTINCT city FROM addresses WHERE province = ? ORDER BY city", (selected_province,))
+                cities = [row[0] for row in self.cursor.fetchall()]
+                self.city_combobox['values'] = cities
+                self.city_var.set('')
+                self.address_listbox.delete(0, tk.END)
+            except Exception as e:
+                print(f"获取城市失败: {e}")
+        else:
+            self.city_combobox['values'] = []
+            self.city_var.set('')
+            self.address_listbox.delete(0, tk.END)
+
+    def search_addresses(self):
+        selected_province = self.province_var.get()
+        selected_city = self.city_var.get()
+
+        if not selected_province or not selected_city:
+            messagebox.showwarning("输入错误", "请选择省份和城市进行查询")
+            return
+
+        try:
+            self.cursor.execute("SELECT id, province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight FROM addresses WHERE province = ? AND city = ?",
+                                (selected_province, selected_city))
+            results = self.cursor.fetchall()
+
+            self.address_listbox.delete(0, tk.END)
+            self.addresses_in_listbox = []
+
+            if results:
+                for row in results:
+                    (address_id, province, city, street, full_address, remark,
+                     phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight) = row
+
+                    display_text = f"{province}-{city}-{street}"
+                    if remark: display_text += f" (备注: {remark})"
+                    if phone: display_text += f" (电话: {phone})"
+                    if wechat: display_text += f" (微信: {wechat})"
+                    if qq: display_text += f" (QQ: {qq})"
+                    if price: display_text += f" (价格: {price})"
+                    if project: display_text += f" (项目: {project})"
+                    if photo_path:
+                         filename = os.path.basename(photo_path)
+                         display_text += f" (照片: {filename})"
+                    if age: display_text += f" (年龄: {age})"
+                    if duration_hours: display_text += f" (时长: {duration_hours}小时)"
+                    if height: display_text += f" (身高: {height})"
+                    if weight: display_text += f" (体重: {weight})"
+
+                    self.address_listbox.insert(tk.END, display_text)
+                    self.addresses_in_listbox.append(row)
+            else:
+                self.address_listbox.insert(tk.END, "未找到匹配的地址")
+                self.addresses_in_listbox = []
+
+        except Exception as e:
+            messagebox.showerror("查询错误", f"查询地址失败: {e}")
+
+    def search_by_text(self):
+        keyword = self.search_entry.get().strip()
+
+        if not keyword:
+            messagebox.showwarning("输入错误", "请输入搜索关键词")
+            self.address_listbox.delete(0, tk.END)
+            self.addresses_in_listbox = []
+            return
+
+        try:
+            self.cursor.execute("SELECT DISTINCT province FROM addresses")
+            all_provinces = [row[0] for row in self.cursor.fetchall()]
+            
+            is_province_search = False
+            for p in all_provinces:
+                if keyword == p or (p.endswith('省') and keyword == p[:-1]) or (p.endswith('市') and keyword == p[:-1]):
+                    self.cursor.execute("SELECT id, province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight FROM addresses WHERE province = ?",
+                                        (p,))
+                    is_province_search = True
+                    break
+
+            if not is_province_search:
+                self.cursor.execute("SELECT id, province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight FROM addresses "
+                                    "WHERE province LIKE ? OR city LIKE ? OR street LIKE ? OR full_address LIKE ? OR remark LIKE ? OR phone LIKE ? OR wechat LIKE ? OR qq LIKE ? OR price LIKE ? OR project LIKE ? OR photo_path LIKE ? OR age LIKE ? OR duration_hours LIKE ? OR height LIKE ? OR weight LIKE ?",
+                                    (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%", f"%{keyword}%"))
+
+            results = self.cursor.fetchall()
+
+            self.address_listbox.delete(0, tk.END)
+            self.addresses_in_listbox = []
+
+            if results:
+                for row in results:
+                    (address_id, province, city, street, full_address, remark,
+                     phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight) = row
+
+                    display_text = f"{province}-{city}-{street}"
+                    self.address_listbox.insert(tk.END, display_text)
+                    self.addresses_in_listbox.append(row)
+            else:
+                self.address_listbox.insert(tk.END, "未找到匹配的地址")
+                self.addresses_in_listbox = []
+
+        except Exception as e:
+            messagebox.showerror("查询错误", f"文本搜索失败: {e}")
+
+    def clear_results(self):
+        self.address_listbox.delete(0, tk.END)
+        self.addresses_in_listbox = []
+
+    def delete_address(self):
+        selected_indices = self.address_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请在列表中选择要删除的地址")
+            return
+
+        ids_to_delete = [self.addresses_in_listbox[i][0] for i in selected_indices]
+
+        if messagebox.askyesno("确认删除", f"确定要删除选中的 {len(ids_to_delete)} 条地址吗?"):
+            try:
+                placeholders = ', '.join('?' for _ in ids_to_delete)
+                self.cursor.execute(f"DELETE FROM addresses WHERE id IN ({placeholders})", ids_to_delete)
+                self.conn.commit()
+                messagebox.showinfo("成功", f"成功删除 {len(ids_to_delete)} 条地址")
+                self.search_addresses()
+                self.populate_provinces()
+            except Exception as e:
+                messagebox.showerror("删除错误", f"删除地址失败: {e}")
+
+    def edit_address(self):
+        selected_indices = self.address_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请在列表中选择要编辑的地址")
+            return
+        if len(selected_indices) > 1:
+             messagebox.showwarning("多个选中", "请只选择一条地址进行编辑")
+             return
+
+        selected_index = selected_indices[0]
+        address_id_to_edit = self.addresses_in_listbox[selected_index][0]
+
+        try:
+            self.cursor.execute("SELECT province, city, street, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight FROM addresses WHERE id = ?", (address_id_to_edit,))
+            result = self.cursor.fetchone()
+
+            if result:
+                (province, city, street, remark, phone, wechat, qq,
+                 price, project, photo_path, age, duration_hours, height, weight) = result
+
+                self.province_entry.delete(0, tk.END)
+                self.province_entry.insert(0, province or "")
+                self.city_entry.delete(0, tk.END)
+                self.city_entry.insert(0, city or "")
+                self.street_entry.delete(0, tk.END)
+                self.street_entry.insert(0, street or "")
+                self.remark_entry.delete(0, tk.END)
+                self.remark_entry.insert(0, remark or "")
+                self.phone_entry.delete(0, tk.END)
+                self.phone_entry.insert(0, phone or "")
+                self.wechat_entry.delete(0, tk.END)
+                self.wechat_entry.insert(0, wechat or "")
+                self.qq_entry.delete(0, tk.END)
+                self.qq_entry.insert(0, qq or "")
+                self.price_entry.delete(0, tk.END)
+                self.price_entry.insert(0, price or "")
+                self.project_entry.delete(0, tk.END)
+                self.project_entry.insert(0, project or "")
+                self.photo_path_entry.delete(0, tk.END)
+                self.photo_path_entry.insert(0, photo_path or "")
+                self.age_entry.delete(0, tk.END)
+                self.age_entry.insert(0, age or "")
+                self.duration_hours_entry.delete(0, tk.END)
+                self.duration_hours_entry.insert(0, duration_hours or "")
+                self.height_entry.delete(0, tk.END)
+                self.height_entry.insert(0, height or "")
+                self.weight_entry.delete(0, tk.END)
+                self.weight_entry.insert(0, weight or "")
+
+
+                self.editing_id = address_id_to_edit
+                self.add_button.config(text="更新地址", command=self.update_address)
+            else:
+                 messagebox.showerror("错误", "未找到要编辑的地址信息")
+
+        except Exception as e:
+            messagebox.showerror("编辑错误", f"获取地址信息失败: {e}")
+
+    def update_address(self):
+        if not hasattr(self, 'editing_id') or self.editing_id is None:
+            messagebox.showwarning("错误", "没有正在编辑的地址")
+            return
+
+        province = self.province_entry.get().strip()
+        city = self.city_entry.get().strip()
+        street = self.street_entry.get().strip()
+        full_address = f"{province}{city}{street}"
+        remark = self.remark_entry.get().strip()
+        phone = self.phone_entry.get().strip()
+        wechat = self.wechat_entry.get().strip()
+        qq = self.qq_entry.get().strip()
+        price = self.price_entry.get().strip()
+        project = self.project_entry.get().strip()
+        photo_path = self.photo_path_entry.get().strip()
+        age = self.age_entry.get().strip()
+        duration_hours = self.duration_hours_entry.get().strip()
+        height = self.height_entry.get().strip()
+        weight = self.weight_entry.get().strip()
+
+        if not province or not city or not street:
+            messagebox.showwarning("输入错误", "省份、城市和详细地址都不能为空")
+            return
+
+        try:
+            self.cursor.execute("UPDATE addresses SET province = ?, city = ?, street = ?, full_address = ?, remark = ?, phone = ?, wechat = ?, qq = ?, price = ?, project = ?, photo_path = ?, age = ?, duration_hours = ?, height = ?, weight = ? WHERE id = ?",
+                                (province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight, self.editing_id))
+            self.conn.commit()
+            messagebox.showinfo("成功", "地址更新成功")
+
+            self.add_button.config(text="添加地址", command=self.add_address)
+            self.editing_id = None
+            self.clear_input_fields()
+
+            self.search_addresses()
+            self.populate_provinces()
+
+        except Exception as e:
+            messagebox.showerror("更新错误", f"更新地址失败: {e}")
+
+    def clear_input_fields(self):
+        self.province_entry.delete(0, tk.END)
+        self.city_entry.delete(0, tk.END)
+        self.street_entry.delete(0, tk.END)
+        self.remark_entry.delete(0, tk.END)
+        self.phone_entry.delete(0, tk.END)
+        self.wechat_entry.delete(0, tk.END)
+        self.qq_entry.delete(0, tk.END)
+        self.price_entry.delete(0, tk.END)
+        self.project_entry.delete(0, tk.END)
+        self.photo_path_entry.delete(0, tk.END)
+        self.age_entry.delete(0, tk.END)
+        self.duration_hours_entry.delete(0, tk.END)
+        self.height_entry.delete(0, tk.END)
+        self.weight_entry.delete(0, tk.END)
+
+    def clear_uploader_fields(self):
+        self.upload_photo_path_entry.delete(0, tk.END)
+        self.upload_full_address_entry.delete(0, tk.END)
+        self.upload_age_entry.delete(0, tk.END)
+        self.upload_price_entry.delete(0, tk.END)
+        self.upload_height_entry.delete(0, tk.END)
+        self.upload_weight_entry.delete(0, tk.END)
+
+    def view_photo(self):
+        selected_indices = self.address_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请在列表中选择要查看照片的地址")
+            return
+        if len(selected_indices) > 1:
+             messagebox.showwarning("多个选中", "请只选择一条地址查看照片")
+             return
+
+        selected_index = selected_indices[0]
+        address_data = self.addresses_in_listbox[selected_index]
+        photo_path = address_data[11]
+
+        if photo_path and os.path.exists(photo_path):
+            try:
+                os.startfile(photo_path)
+            except Exception as e:
+                messagebox.showerror("打开照片失败", f"无法打开照片文件: {e}")
+        else:
+            messagebox.showinfo("无照片", "选中的地址没有关联的照片或文件不存在")
+
+    def copy_selected_address(self):
+        selected_indices = self.address_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请在列表中选择要复制的地址")
+            return
+
+        selected_items_text = []
+        for index in selected_indices:
+            item_text = self.address_listbox.get(index)
+            selected_items_text.append(item_text)
+
+        text_to_copy = "\n".join(selected_items_text)
+
+        try:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text_to_copy)
+            messagebox.showinfo("成功", "选中内容已复制到剪贴板")
+        except Exception as e:
+            messagebox.showerror("复制失败", f"复制内容到剪贴板失败: {e}")
+
+    def show_detail_popup(self, event=None):
+        selected_indices = self.address_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请选择一个地址查看详细信息")
+            return
+
+        selected_index = selected_indices[0]
+        address_data = self.addresses_in_listbox[selected_index]
+
+        popup = tk.Toplevel(self.root)
+        popup.title("地址详细信息")
+        popup.transient(self.root)
+        popup.grab_set()
+        popup.focus_set()
+
+        detail_frame = ttk.Frame(popup)
+        detail_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        row_idx = 0
+
+        photo_path = address_data[11]
+        if photo_path and os.path.exists(photo_path):
+            try:
+                img = Image.open(photo_path)
+                img.thumbnail((300, 300))
+                photo = ImageTk.PhotoImage(img)
+                photo_label = ttk.Label(detail_frame, image=photo)
+                photo_label.image = photo
+                photo_label.grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5)
+                row_idx += 1
+            except Exception as e:
+                ttk.Label(detail_frame, text=f"加载照片失败: {e}").grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+                row_idx += 1
+        else:
+            ttk.Label(detail_frame, text="无照片").grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5, sticky="w")
+            row_idx += 1
+        
+        def create_text_field(parent, label_text, value, row):
+            ttk.Label(parent, text=label_text).grid(row=row, column=0, padx=5, pady=2, sticky="w")
+            text_widget = tk.Text(parent, wrap=tk.WORD, height=1, state=tk.NORMAL, width=50)
+            text_widget.insert(tk.END, value if value is not None else "")
+            text_widget.config(state=tk.DISABLED)
+            text_widget.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
+            text_widget.bind("<Button-3>", lambda event: self.show_copy_menu(event, text_widget))
+            return text_widget
+
+        create_text_field(detail_frame, "省份:", address_data[1], row_idx); row_idx += 1
+        create_text_field(detail_frame, "城市:", address_data[2], row_idx); row_idx += 1
+        create_text_field(detail_frame, "详细地址:", address_data[3], row_idx); row_idx += 1
+        create_text_field(detail_frame, "完整地址:", address_data[4], row_idx); row_idx += 1
+        if address_data[5]: create_text_field(detail_frame, "备注:", address_data[5], row_idx); row_idx += 1
+        if address_data[6]: create_text_field(detail_frame, "电话:", address_data[6], row_idx); row_idx += 1
+        if address_data[7]: create_text_field(detail_frame, "微信:", address_data[7], row_idx); row_idx += 1
+        if address_data[8]: create_text_field(detail_frame, "QQ:", address_data[8], row_idx); row_idx += 1
+        if address_data[9]: create_text_field(detail_frame, "价格:", address_data[9], row_idx); row_idx += 1
+        if address_data[10]: create_text_field(detail_frame, "项目:", address_data[10], row_idx); row_idx += 1
+        if address_data[12]: create_text_field(detail_frame, "年龄:", address_data[12], row_idx); row_idx += 1
+        if address_data[13]: create_text_field(detail_frame, "时长(小时):", address_data[13], row_idx); row_idx += 1
+        if address_data[14]: create_text_field(detail_frame, "身高:", address_data[14], row_idx); row_idx += 1
+        if address_data[15]: create_text_field(detail_frame, "体重:", address_data[15], row_idx); row_idx += 1
+
+        if photo_path:
+            copy_photo_path_button = ttk.Button(detail_frame, text="复制照片路径", command=lambda: self.copy_to_clipboard(photo_path))
+            copy_photo_path_button.grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5, sticky="e")
+            row_idx += 1
+
+        close_button = ttk.Button(detail_frame, text="关闭", command=popup.destroy)
+        close_button.grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5, sticky="e")
+        row_idx += 1
+
+        popup.update_idletasks()
+        width = detail_frame.winfo_reqwidth() + 20
+        height = detail_frame.winfo_reqheight() + 20
+        popup.geometry(f"{width}x{height}")
+
+        popup.protocol("WM_DELETE_WINDOW", lambda: self.on_popup_close(popup))
+
+    def on_popup_close(self, popup):
+        popup.grab_release()
+        popup.destroy()
+
+    def show_copy_menu(self, event, text_widget):
+        menu = tk.Menu(text_widget, tearoff=0)
+        menu.add_command(label="复制", command=lambda: self.copy_text_from_widget(text_widget))
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+
+    def copy_text_from_widget(self, text_widget):
+        try:
+            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST)
+            if selected_text:
+                self.root.clipboard_clear()
+                self.root.clipboard_append(selected_text)
+                messagebox.showinfo("成功", "选中内容已复制到剪贴板")
+        except tk.TclError: # 捕获没有选中任何文本的错误
+            messagebox.showwarning("无选中", "请选中要复制的文本。")
+        except Exception as e:
+            messagebox.showerror("复制失败", f"复制内容到剪贴板失败: {e}")
+
+    def copy_to_clipboard(self, text):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        messagebox.showinfo("成功", "内容已复制到剪贴板")
+
+    def __del__(self):
+        if hasattr(self, 'conn') and self.conn:
+            self.conn.close()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AddressManagerApp(root)
+    root.mainloop()
