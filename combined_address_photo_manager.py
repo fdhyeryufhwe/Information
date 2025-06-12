@@ -428,32 +428,11 @@ class AddressManagerApp:
             commit_message = f"Update photo gallery: Add {os.path.basename(self.upload_photo_path_entry.get().strip())}"
             subprocess.run(["git", "commit", "-m", commit_message], check=True, cwd=self.base_dir)
 
-            # git push origin main，使用 PAT 进行认证
-            # 方式一：通过 URL 传递 PAT (不推荐，因为它会显示在进程列表中)
-            # remote_url = f"https://{pat}@github.com/你的用户名/Information.git" # 请替换为你的实际用户名和仓库名
-            # subprocess.run(["git", "push", remote_url, "main"], check=True, cwd=self.base_dir)
-
-            # 方式二：通过环境变量传递 PAT (更安全)
-            env = os.environ.copy()
-            env['GIT_ASKPASS'] = 'echo'
-            env['GIT_USERNAME'] = 'fdhyeryufhwe' # 替换为你的 GitHub 用户名
-            env['GIT_PASSWORD'] = pat
-            
-            # 注意：如果你的远程 URL 是 https://github.com/fdhyeryufhwe/Information.git
-            # 则需要将 'your-github-username' 替换为 'fdhyeryufhwe' 
-            # 如果不确定，请运行 git remote -v 查看你的远程 URL
-            # 或者直接移除 env['GIT_USERNAME'] 和 env['GIT_PASSWORD']，依赖 Git Credential Manager
-            # 由于之前遇到凭证问题，我们尝试使用这种方式。
-            
-            # 请根据你的实际 GitHub 用户名和仓库名来构建 URL
-            # 或者更简单的，让 Git 自己去管理凭证，如果它已经配置好 GCM
-            # 如果你之前没有成功设置 GCM，这里会是 Git 认证的难点
-            
-            # 暂时不直接在 subprocess 中传入用户名和密码
-            # 而是依赖 Git 凭证管理器或环境变量（如果配置了 GIT_ASKPASS 等）
-            # 鉴于之前多次认证失败，我们先尝试最简单的方式，依赖 Git 已有的凭证设置
-
-            subprocess.run(["git", "push", "origin", "main"], check=True, cwd=self.base_dir, env=env)
+            # git push origin main，通过 URL 传递 PAT 进行认证
+            # 请将 'fdhyeryufhwe' 替换为你的实际 GitHub 用户名
+            # 将 'Information.git' 替换为你的实际仓库名
+            remote_url = f"https://{pat}@github.com/fdhyeryufhwe/Information.git"
+            subprocess.run(["git", "push", remote_url, "main"], check=True, cwd=self.base_dir)
 
             messagebox.showinfo("Git 操作成功", "所有更改已成功推送到 GitHub！网站将在几分钟内更新。")
 
