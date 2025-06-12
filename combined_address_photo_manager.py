@@ -314,6 +314,13 @@ class AddressManagerApp:
         delete_selected_button = tk.Button(list_frame, text="删除选中照片", command=self.delete_selected_uploaded_photo)
         delete_selected_button.pack(pady=5)
 
+        # 新增的导入按钮
+        self.import_db_button = ttk.Button(list_frame, text="导入旧信息 (DB)", command=self.import_info_from_db)
+        self.import_db_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.import_photos_button = ttk.Button(list_frame, text="导入旧照片 (文件夹)", command=self.import_photos_from_folder)
+        self.import_photos_button.pack(side=tk.LEFT, padx=5, pady=5)
+
         self.load_uploaded_photos_listbox() # 初始加载列表
 
     def select_photo(self):
@@ -413,16 +420,9 @@ class AddressManagerApp:
         }
 
         try:
-            if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
-                with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
-                    data = json.load(f)
-            else:
-                data = []
-
-            data.append(new_entry)
-
-            with open(self.data_file_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
+            current_data = self.load_data()
+            current_data.append(new_entry)
+            self.save_data(current_data)
             
             messagebox.showinfo("成功", "照片信息已成功添加到数据文件。")
             self.clear_uploader_fields()
@@ -432,6 +432,25 @@ class AddressManagerApp:
 
         except Exception as e:
             messagebox.showerror("数据错误", f"更新数据文件失败: {e}")
+
+    def load_data(self):
+        """从 data.json 文件加载数据"""
+        if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
+            try:
+                with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                # 如果文件内容不正确，返回空列表
+                return []
+        return []
+
+    def save_data(self, data):
+        """将数据保存到 data.json 文件"""
+        try:
+            with open(self.data_file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            messagebox.showerror("保存错误", f"保存数据到 data.json 失败: {e}")
 
     def run_git_commands(self, commit_message=None):
         # 允许 run_git_commands 接收一个自定义的提交信息
@@ -913,14 +932,10 @@ class AddressManagerApp:
         if messagebox.askyesno("确认删除", "确定要删除选中的照片及其信息吗？此操作将更新网站。"):
             try:
                 # 读取现有数据
-                if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
-                    with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
-                        data = json.load(f)
-                else:
-                    data = []
+                current_data = self.load_data()
 
-                if 0 <= index_to_delete < len(data):
-                    deleted_item = data.pop(index_to_delete)
+                if 0 <= index_to_delete < len(current_data):
+                    deleted_item = current_data.pop(index_to_delete)
 
                     # 删除图片文件
                     photo_file_to_delete = os.path.join(self.base_dir, deleted_item.get('photo_path', ''))
@@ -929,8 +944,7 @@ class AddressManagerApp:
                         messagebox.showinfo("文件删除", f"已删除图片文件: {os.path.basename(photo_file_to_delete)}")
 
                     # 写回更新后的数据
-                    with open(self.data_file_path, 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=4, ensure_ascii=False)
+                    self.save_data(current_data)
                     
                     messagebox.showinfo("成功", "照片信息已成功从数据文件移除。")
                     self.load_uploaded_photos_listbox() # 刷新列表
@@ -942,10 +956,94 @@ class AddressManagerApp:
                 else:
                     messagebox.showwarning("无效选择", "选中的照片不存在。")
 
-            except json.JSONDecodeError as e:
-                messagebox.showerror("JSON 错误", f"data.json 文件格式不正确，无法删除: {e}")
             except Exception as e:
                 messagebox.showerror("删除错误", f"删除照片失败: {e}")
+
+    def import_info_from_db(self):
+        db_file_path = filedialog.askopenfilename(title="选择 addresses.db 文件", filetypes=[("SQLite Database", "*.db"), ("All Files", "*.*")])
+        if not db_file_path: # 用户取消
+            return
+
+        try:
+            conn = sqlite3.connect(db_file_path)
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT photo_path, age, price, height, weight FROM addresses")
+            rows = cursor.fetchall()
+
+            conn.close()
+
+            # 加载现有数据以去重
+            current_data = self.load_data()
+            existing_photo_filenames = {entry["photo_filename"] for entry in current_data}
+
+            new_entries_added = False
+            for row in rows:
+                photo_path, age, price, height, weight = row
+
+                if photo_path:
+                    photo_filename = os.path.basename(photo_path) # 提取文件名
+
+                    if photo_filename not in existing_photo_filenames:
+                        new_entry = {
+                            "photo_filename": photo_filename,
+                            "age": age if age else "N/A",
+                            "price": price if price else "N/A",
+                            "height": height if height else "N/A",
+                            "weight": weight if weight else "N/A"
+                        }
+                        current_data.append(new_entry)
+                        existing_photo_filenames.add(photo_filename) # 更新已存在文件名集合
+                        new_entries_added = True
+                else:
+                    # 如果没有 photo_path，可以考虑是否要导入没有照片的信息，这里暂时跳过
+                    print(f"Skipping entry due to missing photo_path: {row}")
+
+            if new_entries_added:
+                self.save_data(current_data)
+                messagebox.showinfo("导入成功", "旧信息已导入并去重。请确保照片文件已复制到 images 文件夹。")
+                self.load_uploaded_photos_listbox() # 刷新列表框
+                self.run_git_commands()
+            else:
+                messagebox.showinfo("导入完成", "没有新的信息需要导入或所有信息已存在。")
+
+        except sqlite3.Error as e:
+            messagebox.showerror("数据库错误", f"读取数据库时发生错误: {e}")
+        except Exception as e:
+            messagebox.showerror("错误", f"导入信息时发生意外错误: {e}")
+
+    def import_photos_from_folder(self):
+        photos_folder_path = filedialog.askdirectory(title="选择旧照片文件夹 (photos)")
+        if not photos_folder_path: # 用户取消
+            return
+
+        copied_count = 0
+        try:
+            # 确保目标 images 文件夹存在
+            if not os.path.exists(self.images_dir):
+                os.makedirs(self.images_dir)
+
+            for filename in os.listdir(photos_folder_path):
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
+                    source_path = os.path.join(photos_folder_path, filename)
+                    destination_path = os.path.join(self.images_dir, filename)
+
+                    if not os.path.exists(destination_path): # 检查是否已存在，去重
+                        shutil.copy2(source_path, destination_path)
+                        copied_count += 1
+                        print(f"Copied: {filename}")
+                    else:
+                        print(f"Skipped (already exists): {filename}")
+
+            if copied_count > 0:
+                messagebox.showinfo("导入成功", f"已成功导入 {copied_count} 张新照片到 images 文件夹。")
+                self.load_uploaded_photos_listbox() # 刷新列表框
+                self.run_git_commands()
+            else:
+                messagebox.showinfo("导入完成", "没有新的照片需要导入或所有照片已存在。")
+
+        except Exception as e:
+            messagebox.showerror("错误", f"导入照片时发生意外错误: {e}")
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:
