@@ -24,7 +24,26 @@ class AddressManagerApp:
         self.root.title("地址照片管理软件")
 
         # 设置窗口初始大小
-        self.root.geometry("1200x800") # 调整窗口大小以容纳更多内容
+        self.root.geometry("1200x800")
+
+        # 创建一个 Canvas 作为主滚动区域
+        self.main_canvas = tk.Canvas(root)
+        self.main_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # 创建一个垂直滚动条并连接到 Canvas
+        self.main_scrollbar = ttk.Scrollbar(root, orient=tk.VERTICAL, command=self.main_canvas.yview)
+        self.main_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # 配置 Canvas 的滚动
+        self.main_canvas.configure(yscrollcommand=self.main_scrollbar.set)
+        self.main_canvas.bind('<MouseWheel>', self._on_mouse_wheel) # 绑定鼠标滚轮事件
+
+        # 在 Canvas 内部创建一个 Frame 来放置所有其他 widgets
+        self.content_frame = ttk.Frame(self.main_canvas)
+        self.content_frame_id = self.main_canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
+
+        # 确保 content_frame 的大小被计算，并据此设置 Canvas 的 scrollregion
+        self.content_frame.bind('<Configure>', self._on_frame_configure)
 
         # 文件路径设置
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +80,7 @@ class AddressManagerApp:
         self.cursor = self.conn.cursor()
 
         # 创建一个 Notebook (标签页) 来组织不同功能
-        self.notebook = ttk.Notebook(root)
+        self.notebook = ttk.Notebook(self.content_frame) # 将 notebook 放在 content_frame 中
         self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # 地址管理标签页
@@ -83,13 +102,12 @@ class AddressManagerApp:
         self.populate_provinces()
 
     def _on_mouse_wheel(self, event):
-        # 此方法不再直接用于主窗口，但如果地址管理选项卡内有Canvas，则需要绑定
-        pass # 目前主窗口使用Notebook，Canvas可能不再是主滚动区域
+        # print(f"Mouse wheel event: {event.delta}") # 调试完成后可删除
+        self.main_canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
     def _on_frame_configure(self, event):
         """更新 Canvas 的滚动区域以匹配内容 Frame 的大小"""
-        # 由于引入了 Notebook，此方法可能需要调整其作用的Canvas
-        pass # 目前不直接使用此方法
+        self.main_canvas.config(scrollregion=self.main_canvas.bbox("all"))
 
     def create_table(self):
         self.cursor.execute('''
@@ -286,6 +304,18 @@ class AddressManagerApp:
 
         upload_frame.grid_columnconfigure(1, weight=1) # 让输入框可以伸展
 
+        # 已上传照片列表区域
+        list_frame = tk.LabelFrame(parent_frame, text="已上传照片", bg='#e0e0e0', fg='#333333')
+        list_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        self.uploaded_photos_listbox = tk.Listbox(list_frame, height=10)
+        self.uploaded_photos_listbox.pack(padx=5, pady=5, fill="both", expand=True)
+
+        delete_selected_button = tk.Button(list_frame, text="删除选中照片", command=self.delete_selected_uploaded_photo)
+        delete_selected_button.pack(pady=5)
+
+        self.load_uploaded_photos_listbox() # 初始加载列表
+
     def select_photo(self):
         """地址管理页面选择照片"""
         filename = filedialog.askopenfilename(
@@ -403,12 +433,14 @@ class AddressManagerApp:
         except Exception as e:
             messagebox.showerror("数据错误", f"更新数据文件失败: {e}")
 
-    def run_git_commands(self):
+    def run_git_commands(self, commit_message=None):
+        # 允许 run_git_commands 接收一个自定义的提交信息
+        if commit_message is None:
+            commit_message = f"Update photo gallery: Add {os.path.basename(self.upload_photo_path_entry.get().strip())}" # 默认提交信息为添加操作
+
         try:
-            # 确保当前目录是 Git 仓库的根目录
             os.chdir(self.base_dir)
 
-            # 读取个人访问令牌
             pat = None
             pat_file_path = os.path.join(self.base_dir, 'github_pat.txt')
             if os.path.exists(pat_file_path):
@@ -421,16 +453,10 @@ class AddressManagerApp:
 
             messagebox.showinfo("Git 操作", "正在执行 Git 操作，请稍候...")
 
-            # git add .
             subprocess.run(["git", "add", "."], check=True, cwd=self.base_dir)
 
-            # git commit -m "Update photo gallery and data"
-            commit_message = f"Update photo gallery: Add {os.path.basename(self.upload_photo_path_entry.get().strip())}"
             subprocess.run(["git", "commit", "-m", commit_message], check=True, cwd=self.base_dir)
 
-            # git push origin main，通过 URL 传递 PAT 进行认证
-            # 请将 'fdhyeryufhwe' 替换为你的实际 GitHub 用户名
-            # 将 'Information.git' 替换为你的实际仓库名
             remote_url = f"https://{pat}@github.com/fdhyeryufhwe/Information.git"
             subprocess.run(["git", "push", remote_url, "main"], check=True, cwd=self.base_dir)
 
@@ -856,6 +882,70 @@ class AddressManagerApp:
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
         messagebox.showinfo("成功", "内容已复制到剪贴板")
+
+    def load_uploaded_photos_listbox(self):
+        """从 data.json 读取数据并填充已上传照片列表框"""
+        self.uploaded_photos_listbox.delete(0, tk.END)
+        try:
+            if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
+                with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
+                    data = json.load(f)
+                for i, item in enumerate(data):
+                    display_text = f"[{i}] {item.get('full_address', 'N/A')} - {os.path.basename(item.get('photo_path', 'N/A'))}"
+                    self.uploaded_photos_listbox.insert(tk.END, display_text)
+            else:
+                self.uploaded_photos_listbox.insert(tk.END, "暂无照片")
+        except json.JSONDecodeError as e:
+            messagebox.showerror("JSON 错误", f"data.json 文件格式不正确: {e}")
+        except Exception as e:
+            messagebox.showerror("读取错误", f"加载已上传照片列表失败: {e}")
+
+    def delete_selected_uploaded_photo(self):
+        """删除选中的已上传照片及其信息"""
+        selected_indices = self.uploaded_photos_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请在列表中选择要删除的照片。")
+            return
+
+        # 考虑到列表框显示的索引和实际数据索引一致
+        index_to_delete = selected_indices[0]
+
+        if messagebox.askyesno("确认删除", "确定要删除选中的照片及其信息吗？此操作将更新网站。"):
+            try:
+                # 读取现有数据
+                if os.path.exists(self.data_file_path) and os.path.getsize(self.data_file_path) > 0:
+                    with open(self.data_file_path, 'r', encoding='utf-8-sig') as f:
+                        data = json.load(f)
+                else:
+                    data = []
+
+                if 0 <= index_to_delete < len(data):
+                    deleted_item = data.pop(index_to_delete)
+
+                    # 删除图片文件
+                    photo_file_to_delete = os.path.join(self.base_dir, deleted_item.get('photo_path', ''))
+                    if os.path.exists(photo_file_to_delete):
+                        os.remove(photo_file_to_delete)
+                        messagebox.showinfo("文件删除", f"已删除图片文件: {os.path.basename(photo_file_to_delete)}")
+
+                    # 写回更新后的数据
+                    with open(self.data_file_path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=4, ensure_ascii=False)
+                    
+                    messagebox.showinfo("成功", "照片信息已成功从数据文件移除。")
+                    self.load_uploaded_photos_listbox() # 刷新列表
+                    
+                    # 执行 Git 命令并推送到 GitHub
+                    # 使用更明确的提交信息
+                    self.run_git_commands(commit_message=f"Remove photo: {os.path.basename(deleted_item.get('photo_path', ''))}")
+
+                else:
+                    messagebox.showwarning("无效选择", "选中的照片不存在。")
+
+            except json.JSONDecodeError as e:
+                messagebox.showerror("JSON 错误", f"data.json 文件格式不正确，无法删除: {e}")
+            except Exception as e:
+                messagebox.showerror("删除错误", f"删除照片失败: {e}")
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:
