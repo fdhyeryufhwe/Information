@@ -7,6 +7,7 @@ import shutil
 from PIL import Image, ImageTk
 import json
 import subprocess # 用于执行 Git 命令
+import threading # 引入 threading 模块
 
 # 移除 python-pptx 相关导入和检查
 # try:
@@ -453,43 +454,53 @@ class AddressManagerApp:
             messagebox.showerror("保存错误", f"保存数据到 data.json 失败: {e}")
 
     def run_git_commands(self, commit_message=None):
-        # 允许 run_git_commands 接收一个自定义的提交信息
+        # 检查是否正在运行 Git 命令以避免重复执行
+        if hasattr(self, 'git_process_running') and self.git_process_running:
+            messagebox.showinfo("Git 操作", "Git 同步操作正在后台进行中，请稍候...", parent=self.root)
+            return
+
+        self.git_process_running = True
+        messagebox.showinfo("Git 操作", "Git 同步操作将在后台进行，应用程序将保持响应。", parent=self.root)
+
+        # 默认提交信息
         if commit_message is None:
-            commit_message = f"Update photo gallery: Add {os.path.basename(self.upload_photo_path_entry.get().strip())}" # 默认提交信息为添加操作
+            commit_message = "Update address and photo data"
 
-        try:
-            os.chdir(self.base_dir)
+        def _run_git_in_thread():
+            try:
+                # 切换到项目目录
+                os.chdir(self.base_dir)
 
-            pat = None
-            pat_file_path = os.path.join(self.base_dir, 'github_pat.txt')
-            if os.path.exists(pat_file_path):
-                with open(pat_file_path, 'r', encoding='utf-8') as f:
-                    pat = f.read().strip()
-            
-            if not pat:
-                messagebox.showerror("Git 错误", "未找到个人访问令牌（PAT）。请在 \'github_pat.txt\' 文件中放置您的 PAT。")
-                return
+                # 1. git add .
+                subprocess.run(["git", "add", "."], check=True, capture_output=True, text=True)
+                print("Git add successful.")
 
-            messagebox.showinfo("Git 操作", "正在执行 Git 操作，请稍候...")
+                # 2. git commit -m "..."
+                subprocess.run(["git", "commit", "-m", commit_message], check=True, capture_output=True, text=True)
+                print("Git commit successful.")
 
-            subprocess.run(["git", "add", "."], check=True, cwd=self.base_dir)
+                # 3. git push origin main
+                # 确保使用正确的远程和分支名称
+                # 如果您的主分支是 master，请将 main 替换为 master
+                subprocess.run(["git", "push", "origin", "main"], check=True, capture_output=True, text=True)
+                print("Git push successful.")
 
-            subprocess.run(["git", "commit", "-m", commit_message], check=True, cwd=self.base_dir)
+                messagebox.showinfo("Git 操作", "数据已成功同步到 GitHub Pages！", parent=self.root)
 
-            remote_url = f"https://{pat}@github.com/fdhyeryufhwe/Information.git"
-            subprocess.run(["git", "push", remote_url, "main"], check=True, cwd=self.base_dir)
+            except subprocess.CalledProcessError as e:
+                error_message = f"Git 命令执行失败！\n命令: {e.cmd}\n标准输出: {e.stdout}\n错误输出: {e.stderr}"
+                print(error_message)
+                messagebox.showerror("Git 错误", error_message, parent=self.root)
+            except FileNotFoundError:
+                messagebox.showerror("Git 错误", "未找到 Git 命令。请确保 Git 已安装并添加到系统 PATH 中。", parent=self.root)
+            except Exception as e:
+                messagebox.showerror("Git 错误", f"执行 Git 命令时发生意外错误: {e}", parent=self.root)
+            finally:
+                self.git_process_running = False # 确保在操作完成后重置标志
 
-            messagebox.showinfo("Git 操作成功", "所有更改已成功推送到 GitHub！网站将在几分钟内更新。")
-
-        except subprocess.CalledProcessError as e:
-            error_message = f"Git 命令执行失败: {e}\n"
-            if e.stderr:
-                error_message += e.stderr.decode('utf-8', errors='ignore')
-            messagebox.showerror("Git 错误", error_message)
-        except FileNotFoundError:
-            messagebox.showerror("Git 错误", "未找到 Git 命令。请确保 Git 已正确安装并配置到系统PATH中。")
-        except Exception as e:
-            messagebox.showerror("未知错误", f"执行 Git 操作时发生未知错误: {e}")
+        # 在新线程中运行 Git 命令
+        git_thread = threading.Thread(target=_run_git_in_thread)
+        git_thread.start()
 
     def populate_provinces(self):
         try:

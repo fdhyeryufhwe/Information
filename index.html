@@ -1,20 +1,27 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>�ҵ���Ƭ����</title>
+    <title>地址照片展示</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>�ҵĸ�����Ƭ����</h1>
+        <h1>地址照片展示</h1>
     </header>
-    <main id="gallery-container">
-        <!-- ��Ƭ���������� JavaScript ���� -->
+    <main>
+        <div class="search-container">
+            <p>输入省份或城市名称进行筛选:</p>
+            <input type="text" id="searchInput" placeholder="例如: 广东, 广州">
+        </div>
+        <div id="gallery" class="gallery-container">
+            <!-- Photos will be dynamically loaded here -->
+            <p>加载中...</p>
+        </div>
     </main>
     <footer>
-        <p>&copy; 2023 �ҵĻ���. ��Ȩ���С�</p>
+        <p>&copy; 2023 地址照片管理. 保留所有权利.</p>
     </footer>
     <script src="script.js"></script>
 </body>
