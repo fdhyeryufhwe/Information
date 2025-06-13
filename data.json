@@ -318,5 +318,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749564689371.jpg",
+        "full_address": "四川省成都市光华村优品道",
+        "age": "20+",
+        "price": "500",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
