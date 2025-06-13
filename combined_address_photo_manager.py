@@ -458,26 +458,40 @@ class AddressManagerApp:
         except Exception as e:
             messagebox.showerror("保存错误", f"保存数据到 data.json 失败: {e}")
 
-    def optimize_image(self, original_path, destination_path, max_size=(800, 600), quality=85):
+    def optimize_image(self, original_path, destination_path, min_size=(600, 400), max_size=(1200, 900), quality=85):
         """
         优化图片大小和质量并保存到目标路径。
-        max_size: 图片的最大宽度和高度，图片会被按比例缩小以适应这个尺寸。
-        quality: JPEG 图片的质量 (0-100)。
+        图片会被按比例缩小以适应max_size，如果小于min_size也会按比例放大。
         """
         try:
             img = Image.open(original_path)
-            img.thumbnail(max_size, Image.Resampling.LANCZOS) # 使用高质量的缩放算法
+            width, height = img.size
+
+            # 先处理放大逻辑
+            if width < min_size[0] or height < min_size[1]:
+                # 计算需要放大的比例，取两者中较大的一个以确保图片至少达到最小尺寸
+                ratio_w = min_size[0] / width
+                ratio_h = min_size[1] / height
+                scale_ratio = max(ratio_w, ratio_h)
+                new_width = int(width * scale_ratio)
+                new_height = int(height * scale_ratio)
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                width, height = img.size # Update dimensions after potential upscale
+
+            # 再处理缩小逻辑
+            if width > max_size[0] or height > max_size[1]:
+                img.thumbnail(max_size, Image.Resampling.LANCZOS)
 
             # 根据图片格式决定保存方式
             if original_path.lower().endswith(('.jpg', '.jpeg')):
+                if img.mode == 'RGBA':
+                    img = img.convert('RGB') # 转换为RGB，去除透明度，以便保存为JPEG
                 img.save(destination_path, "JPEG", quality=quality, optimize=True)
             elif original_path.lower().endswith( '.png'):
-                # 对于PNG，通常使用optimize=True即可，质量控制不如JPEG直接
                 img.save(destination_path, "PNG", optimize=True)
             elif original_path.lower().endswith( '.webp'):
                 img.save(destination_path, "WEBP", quality=quality, optimize=True)
             else:
-                # 对于其他格式，直接保存
                 img.save(destination_path)
             return True
         except Exception as e:
