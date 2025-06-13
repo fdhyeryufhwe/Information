@@ -462,5 +462,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749192115873.jpg",
+        "full_address": "安徽省合肥市蜀山区新粮仓",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
