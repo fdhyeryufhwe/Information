@@ -590,5 +590,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749569365847.jpg",
+        "full_address": "山西省大同市东信广场附近",
+        "age": "40+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
