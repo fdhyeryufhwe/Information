@@ -598,5 +598,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749569441516.jpg",
+        "full_address": "山西省大同市平城区大庆路北馨理想城",
+        "age": "20+",
+        "price": "800",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
