@@ -606,5 +606,13 @@
         "price": "800",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749569525212.jpg",
+        "full_address": "山西省大同市万达附近",
+        "age": "30+",
+        "price": "500",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
