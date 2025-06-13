@@ -158,5 +158,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749478859150.jpg",
+        "full_address": "吉林省长春市前进大街",
+        "age": "30+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
