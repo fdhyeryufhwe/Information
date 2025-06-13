@@ -1830,5 +1830,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749187930489.jpg",
+        "full_address": "辽宁省沈阳市老范家熟食(宁山东路甲4号楼店)",
+        "age": "40",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
