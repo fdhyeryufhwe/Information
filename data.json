@@ -1934,5 +1934,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749461527367.png",
+        "full_address": "辽宁省葫芦岛市不详",
+        "age": "20+",
+        "price": "300",
+        "height": "1.65",
+        "weight": "90"
     }
 ]
