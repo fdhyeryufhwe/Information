@@ -85,8 +85,8 @@ class AddressManagerApp:
         self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # 地址管理标签页
-        self.address_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.address_tab, text="地址管理")
+        # self.address_tab = ttk.Frame(self.notebook)
+        # self.notebook.add(self.address_tab, text="地址管理")
 
         # 照片上传与网站更新标签页
         self.photo_upload_tab = ttk.Frame(self.notebook)
@@ -96,11 +96,11 @@ class AddressManagerApp:
         self.create_table()
 
         # 创建界面元素
-        self.create_widgets(self.address_tab) # 地址管理界面
+        # self.create_widgets(self.address_tab) # 地址管理界面
         self.create_photo_uploader_widgets(self.photo_upload_tab) # 照片上传界面
 
         # 初始填充省份下拉框
-        self.populate_provinces()
+        # self.populate_provinces()
 
     def _on_mouse_wheel(self, event):
         # print(f"Mouse wheel event: {event.delta}") # 调试完成后可删除
@@ -132,143 +132,6 @@ class AddressManagerApp:
             )
         ''')
         self.conn.commit()
-
-    def create_widgets(self, parent_frame):
-        # 地址输入区域
-        input_frame = tk.LabelFrame(parent_frame, text="添加新地址", bg='#e0e0e0', fg='#333333')
-        input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-
-        ttk.Label(input_frame, text="省份:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.province_entry = ttk.Entry(input_frame, width=40)
-        self.province_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="城市:").grid(row=1, column=0, padx=5, pady=5, sticky="w")
-        self.city_entry = ttk.Entry(input_frame, width=40)
-        self.city_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="详细地址:").grid(row=2, column=0, padx=5, pady=5, sticky="w")
-        self.street_entry = ttk.Entry(input_frame, width=40)
-        self.street_entry.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="备注:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
-        self.remark_entry = ttk.Entry(input_frame, width=40)
-        self.remark_entry.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="电话:").grid(row=4, column=0, padx=5, pady=5, sticky="w")
-        self.phone_entry = ttk.Entry(input_frame, width=18)
-        self.phone_entry.grid(row=4, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="微信:").grid(row=4, column=2, padx=5, pady=5, sticky="w")
-        self.wechat_entry = ttk.Entry(input_frame, width=18)
-        self.wechat_entry.grid(row=4, column=3, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="QQ:").grid(row=5, column=0, padx=5, pady=5, sticky="w")
-        self.qq_entry = ttk.Entry(input_frame, width=18)
-        self.qq_entry.grid(row=5, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="价格:").grid(row=5, column=2, padx=5, pady=5, sticky="w")
-        self.price_entry = ttk.Entry(input_frame, width=18)
-        self.price_entry.grid(row=5, column=3, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="项目:").grid(row=6, column=0, padx=5, pady=5, sticky="w")
-        self.project_entry = ttk.Entry(input_frame, width=18)
-        self.project_entry.grid(row=6, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="照片:").grid(row=6, column=2, padx=5, pady=5, sticky="w")
-        photo_frame = ttk.Frame(input_frame)
-        photo_frame.grid(row=6, column=3, padx=5, pady=5, sticky="ew")
-
-        self.photo_path_entry = ttk.Entry(photo_frame, width=10)
-        self.photo_path_entry.pack(side=tk.LEFT, fill="x", expand=True)
-
-        ttk.Button(photo_frame, text="选择照片", command=self.select_photo).pack(side=tk.LEFT)
-
-        ttk.Label(input_frame, text="年龄:").grid(row=7, column=0, padx=5, pady=5, sticky="w")
-        self.age_entry = ttk.Entry(input_frame, width=18)
-        self.age_entry.grid(row=7, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="时长(小时):").grid(row=7, column=2, padx=5, pady=5, sticky="w")
-        self.duration_hours_entry = ttk.Entry(input_frame, width=18)
-        self.duration_hours_entry.grid(row=7, column=3, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="身高:").grid(row=8, column=0, padx=5, pady=5, sticky="w")
-        self.height_entry = ttk.Entry(input_frame, width=18)
-        self.height_entry.grid(row=8, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Label(input_frame, text="体重:").grid(row=8, column=2, padx=5, pady=5, sticky="w")
-        self.weight_entry = ttk.Entry(input_frame, width=18)
-        self.weight_entry.grid(row=8, column=3, padx=5, pady=5, sticky="ew")
-
-        self.add_button = ttk.Button(input_frame, text="添加地址", command=self.add_address, style='TButton')
-        self.add_button.grid(row=9, column=3, padx=5, pady=5, sticky="e")
-
-        clear_button = ttk.Button(input_frame, text="清空", command=self.clear_input_fields)
-        clear_button.grid(row=9, column=0, padx=5, pady=5, sticky="w")
-
-        input_frame.grid_columnconfigure(1, weight=1)
-        input_frame.grid_columnconfigure(3, weight=1)
-
-        # 地址查询区域
-        query_frame = tk.LabelFrame(parent_frame, text="查询地址", bg='#e0e0e0', fg='#333333')
-        query_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-
-        query_frame.grid_columnconfigure(1, weight=1)
-
-        ttk.Label(query_frame, text="选择省份:").grid(row=0, column=0, padx=5, pady=5)
-        self.province_var = tk.StringVar()
-        self.province_combobox = ttk.Combobox(query_frame, textvariable=self.province_var, state="readonly")
-        self.province_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-        self.province_combobox.bind("<<ComboboxSelected>>", self.on_province_select)
-
-        ttk.Label(query_frame, text="选择城市:").grid(row=1, column=0, padx=5, pady=5)
-        self.city_var = tk.StringVar()
-        self.city_combobox = ttk.Combobox(query_frame, textvariable=self.city_var, state="readonly")
-        self.city_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Button(query_frame, text="查询", command=self.search_addresses, style='TButton').grid(row=2, column=1, padx=5, pady=5, sticky="e")
-
-        ttk.Label(query_frame, text="搜索关键词:").grid(row=3, column=0, padx=5, pady=5)
-        self.search_entry = ttk.Entry(query_frame, width=40)
-        self.search_entry.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
-
-        ttk.Button(query_frame, text="文本搜索", command=self.search_by_text, style='TButton').grid(row=4, column=1, padx=5, pady=5, sticky="e")
-
-        # 地址列表显示区域
-        result_frame = tk.LabelFrame(parent_frame, text="查询结果", bg='#e0e0e0', fg='#333333')
-        result_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-        self.address_listbox = tk.Listbox(result_frame, width=80, height=10)
-        self.address_listbox.pack(padx=5, pady=5, fill="both", expand=True)
-        self.address_listbox.bind('<Double-Button-1>', self.show_detail_popup)
-
-        self.address_listbox_scrollbar_x = ttk.Scrollbar(result_frame, orient=tk.HORIZONTAL)
-        self.address_listbox_scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=0)
-
-        self.address_listbox.config(xscrollcommand=self.address_listbox_scrollbar_x.set)
-        self.address_listbox_scrollbar_x.config(command=self.address_listbox.xview)
-
-        button_frame = ttk.Frame(result_frame)
-        button_frame.pack(pady=5)
-
-        delete_button = ttk.Button(button_frame, text="删除选中地址", command=self.delete_address, style='Danger.TButton')
-        delete_button.pack(side=tk.LEFT, padx=5)
-
-        edit_button = ttk.Button(button_frame, text="编辑选中地址", command=self.edit_address, style='TButton')
-        edit_button.pack(side=tk.LEFT, padx=5)
-
-        clear_results_button = ttk.Button(button_frame, text="清空查询结果", command=self.clear_results, style='TButton')
-        clear_results_button.pack(side=tk.LEFT, padx=5)
-
-        view_photo_button = ttk.Button(button_frame, text="查看照片", command=self.view_photo, style='TButton')
-        view_photo_button.pack(side=tk.LEFT, padx=5)
-
-        copy_button = ttk.Button(button_frame, text="复制选中内容", command=self.copy_selected_address, style='TButton')
-        copy_button.pack(side=tk.LEFT, padx=5)
-
-        parent_frame.grid_columnconfigure(0, weight=1)
-        parent_frame.grid_columnconfigure(1, weight=1)
-        parent_frame.grid_rowconfigure(1, weight=1)
-
 
     def create_photo_uploader_widgets(self, parent_frame):
         # 照片上传区域
@@ -321,6 +184,9 @@ class AddressManagerApp:
 
         self.import_photos_button = ttk.Button(list_frame, text="导入旧照片 (文件夹)", command=self.import_photos_from_folder)
         self.import_photos_button.pack(side=tk.LEFT, padx=5, pady=5)
+
+        self.sync_website_button = ttk.Button(list_frame, text="同步到网站", command=self.regenerate_data_json_from_db_and_images)
+        self.sync_website_button.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.load_uploaded_photos_listbox() # 初始加载列表
 
@@ -430,11 +296,16 @@ class AddressManagerApp:
             current_data.append(new_entry)
             self.save_data(current_data)
             
-            messagebox.showinfo("成功", "照片信息已成功添加到数据文件。")
+            # 将新添加的信息也存储到 SQLite 数据库
+            self.cursor.execute("INSERT INTO addresses (province, city, street, full_address, remark, phone, wechat, qq, price, project, photo_path, age, duration_hours, height, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                ('', '', '', full_address, '', '', '', '', price, '', destination_photo_path, age, '', height, weight))
+            self.conn.commit()
+
+            messagebox.showinfo("成功", "照片信息已成功添加到数据文件和数据库。正在更新网站。")
             self.clear_uploader_fields()
             
-            # 3. 执行 Git 命令并推送到 GitHub
-            self.run_git_commands()
+            # 调用新的同步函数，确保网站数据与数据库和图片文件夹一致
+            self.regenerate_data_json_from_db_and_images()
 
         except Exception as e:
             messagebox.showerror("数据错误", f"更新数据文件失败: {e}")
@@ -1051,42 +922,43 @@ class AddressManagerApp:
             conn = sqlite3.connect(db_file_path)
             cursor = conn.cursor()
 
-            cursor.execute("SELECT photo_path, age, price, height, weight FROM addresses")
+            # 查询所有相关字段，包括 full_address
+            cursor.execute("SELECT full_address, photo_path, age, price, height, weight FROM addresses")
             rows = cursor.fetchall()
 
             conn.close()
 
-            # 加载现有数据以去重
+            # 加载现有数据以去重，基于网页使用的 photo_path
             current_data = self.load_data()
-            existing_photo_filenames = {entry["photo_filename"] for entry in current_data}
+            existing_web_photo_paths = {entry.get("photo_path") for entry in current_data if entry.get("photo_path")}
 
             new_entries_added = False
             for row in rows:
-                photo_path, age, price, height, weight = row
+                full_address, db_photo_path, age, price, height, weight = row
 
-                if photo_path:
-                    photo_filename = os.path.basename(photo_path) # 提取文件名
+                if db_photo_path:
+                    photo_filename = os.path.basename(db_photo_path)
+                    web_photo_path = f"images/{photo_filename}" # 构建网页相对路径
 
-                    if photo_filename not in existing_photo_filenames:
+                    if web_photo_path not in existing_web_photo_paths:
                         new_entry = {
-                            "photo_filename": photo_filename,
+                            "photo_path": web_photo_path, # 网页使用此路径
+                            "full_address": full_address if full_address else "无地址信息", # 确保包含完整地址
                             "age": age if age else "N/A",
                             "price": price if price else "N/A",
                             "height": height if height else "N/A",
                             "weight": weight if weight else "N/A"
                         }
                         current_data.append(new_entry)
-                        existing_photo_filenames.add(photo_filename) # 更新已存在文件名集合
+                        existing_web_photo_paths.add(web_photo_path)
                         new_entries_added = True
                 else:
-                    # 如果没有 photo_path，可以考虑是否要导入没有照片的信息，这里暂时跳过
-                    print(f"Skipping entry due to missing photo_path: {row}")
+                    print(f"Warn: 数据库记录 '{full_address}' 没有关联的图片路径，已跳过导入到 data.json。")
 
             if new_entries_added:
                 self.save_data(current_data)
-                messagebox.showinfo("导入成功", "旧信息已导入并去重。请确保照片文件已复制到 images 文件夹。")
-                self.load_uploaded_photos_listbox() # 刷新列表框
-                self.run_git_commands()
+                messagebox.showinfo("导入成功", "旧信息已导入并去重。请确保照片文件已复制到 images 文件夹。之后会重新生成网站数据并同步。")
+                self.regenerate_data_json_from_db_and_images() # 导入后立即重新生成并同步
             else:
                 messagebox.showinfo("导入完成", "没有新的信息需要导入或所有信息已存在。")
 
@@ -1122,14 +994,71 @@ class AddressManagerApp:
                         print(f"Skipped (already exists): {filename}")
 
             if copied_count > 0:
-                messagebox.showinfo("导入成功", f"已成功导入并优化 {copied_count} 张新照片到 images 文件夹。")
-                self.load_uploaded_photos_listbox() # 刷新列表框
-                self.run_git_commands()
+                messagebox.showinfo("导入成功", f"已成功导入并优化 {copied_count} 张新照片到 images 文件夹。正在更新网站。")
+                # 调用新的同步函数，确保网站数据与数据库和图片文件夹一致
+                self.regenerate_data_json_from_db_and_images()
             else:
                 messagebox.showinfo("导入完成", "没有新的照片需要导入或所有照片已存在。")
 
         except Exception as e:
             messagebox.showerror("错误", f"导入照片时发生意外错误: {e}")
+
+    def regenerate_data_json_from_db_and_images(self):
+        """
+        从 SQLite 数据库和 images 文件夹重新生成 data.json 文件，并同步到 GitHub。
+        这个函数是确保网站数据与本地数据一致的核心。
+        """
+        messagebox.showinfo("同步网站数据", "正在从数据库和本地图片重新生成网站数据，并准备同步到 GitHub Pages，这可能需要一些时间。", parent=self.root)
+
+        def _regenerate_and_sync_in_thread():
+            # 在新线程中创建独立的数据库连接和游标
+            conn_thread = None
+            cursor_thread = None
+            try:
+                conn_thread = sqlite3.connect(os.path.join(self.base_dir, 'addresses.db'))
+                cursor_thread = conn_thread.cursor()
+
+                cursor_thread.execute("SELECT full_address, photo_path, age, price, height, weight FROM addresses")
+                db_data = cursor_thread.fetchall()
+
+                website_data = []
+                for row in db_data:
+                    full_address, db_photo_path, age, price, height, weight = row
+
+                    if db_photo_path:
+                        photo_filename = os.path.basename(db_photo_path)
+                        web_photo_path = f"images/{photo_filename}"
+                        
+                        local_image_path = os.path.join(self.images_dir, photo_filename)
+                        if os.path.exists(local_image_path):
+                            website_data.append({
+                                "photo_path": web_photo_path,
+                                "full_address": full_address if full_address else "无地址信息",
+                                "age": age if age else "N/A",
+                                "price": price if price else "N/A",
+                                "height": height if height else "N/A",
+                                "weight": weight if weight else "N/A"
+                            })
+                        else:
+                            print(f"Warn: 图片文件 '{photo_filename}' 不存在于 images 文件夹，已跳过其信息。")
+                    else:
+                        print(f"Warn: 数据库记录 '{full_address}' 没有关联的图片路径，已跳过。")
+                
+                self.save_data(website_data)
+                messagebox.showinfo("同步完成", "网站数据 (data.json) 已成功更新。现在将推送到 GitHub Pages。", parent=self.root)
+                self.load_uploaded_photos_listbox() # 刷新列表框
+                self.run_git_commands(commit_message="Regenerate data.json and sync website")
+
+            except Exception as e:
+                messagebox.showerror("同步失败", f"重新生成网站数据失败: {e}", parent=self.root)
+            finally:
+                if cursor_thread: # 确保关闭游标
+                    cursor_thread.close()
+                if conn_thread: # 确保关闭连接
+                    conn_thread.close()
+            
+        sync_thread = threading.Thread(target=_regenerate_and_sync_in_thread)
+        sync_thread.start()
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:
