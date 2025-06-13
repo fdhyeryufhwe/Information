@@ -1158,5 +1158,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749367202359.jpg",
+        "full_address": "河北省石家庄市不详",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
