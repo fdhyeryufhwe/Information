@@ -118,5 +118,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749187388446.jpg",
+        "full_address": "吉林省长春市长春市二道区惠泽园",
+        "age": "40+",
+        "price": "100",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
