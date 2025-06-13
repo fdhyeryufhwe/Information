@@ -46,5 +46,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749191723010.jpg",
+        "full_address": "上海省上海市徐汇区",
+        "age": "30",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
