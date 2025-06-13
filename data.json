@@ -374,5 +374,13 @@
         "price": "399",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749565878958.jpg",
+        "full_address": "四川省成都市文殊院附近",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
