@@ -1846,5 +1846,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749189902353.jpg",
+        "full_address": "辽宁省沈阳市铁西广场",
+        "age": "40+",
+        "price": "自己谈",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
