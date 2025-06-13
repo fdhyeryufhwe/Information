@@ -198,5 +198,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749479380469.jpg",
+        "full_address": "吉林省长春市南关区天顺超市附近",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
