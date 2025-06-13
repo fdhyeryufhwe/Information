@@ -1662,5 +1662,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749196548721.jpg",
+        "full_address": "湖南省长沙市雨花区",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
