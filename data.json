@@ -686,5 +686,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749569976593.jpg",
+        "full_address": "山西省晋中市榆次 火车站附近",
+        "age": "30+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
