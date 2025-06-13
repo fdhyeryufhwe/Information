@@ -646,5 +646,13 @@
         "price": "自己谈",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749568534071.jpg",
+        "full_address": "山西省太原市小店区百花谷",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
