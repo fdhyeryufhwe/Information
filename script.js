@@ -238,6 +238,16 @@
     showWarningModal("本站为信息付费，并不对寻欢经历负责，请注意个人防范。\n\n凡是有要求路费/上门/定金/保证金/照片验证/视频验证/提前付费等类似行为的都是骗子，同时也请注意任何形式的推荐办卡行为，请勿上当受骗。\n\n碰到有问题的信息，请及时举报给我们删除信息。如果发布的信息涉及个人隐私，也请及时举报，我们会核实后第一时间帮你删除处理。");
 });
 
+function initializeMainContent() {
+    // Photos data loading (only after key is validated)
+    loadPhotos();
+
+    // Existing event listeners (moved here to ensure elements are available)
+    document.getElementById('addressSearch').addEventListener('input', filterGallery);
+    document.getElementById('searchButton').addEventListener('click', filterGallery);
+    document.getElementById('resetSearchButton').addEventListener('click', resetSearch);
+}
+
 async function loadKeysConfig() {
     try {
         const response = await fetch('keys_config.json');
@@ -291,7 +301,7 @@ async function validateKey() {
     if (isValid) {
         document.getElementById('key-entry-modal').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
-        loadPhotos(); // Load content after successful validation
+        initializeMainContent(); // Initialize main content after successful validation
     } else {
         keyMessage.textContent = '密钥无效或已过期，请重试或联系管理员。';
     }
