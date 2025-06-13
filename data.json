@@ -1726,5 +1726,13 @@
         "price": "150",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749196233299.jpg",
+        "full_address": "辽宁省大连市金州区",
+        "age": "40+",
+        "price": "150",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
