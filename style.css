@@ -318,3 +318,68 @@ footer {
     color: #666666;
     cursor: not-allowed;
 }
+
+.pagination-container button.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Key Entry Modal Styles */
+#key-entry-modal {
+    display: flex; /* Use flexbox for centering */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+}
+
+#key-entry-modal .modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Removed to use flexbox centering */
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%; /* Could be more specific */
+    max-width: 500px; /* Max width for larger screens */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    text-align: center;
+}
+
+#key-entry-modal h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+#keyInput {
+    width: calc(100% - 20px); /* Account for padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#submitKeyButton {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+#submitKeyButton:hover {
+    background-color: #0056b3;
+}
+
+#keyMessage {
+    margin-top: 15px;
+    font-weight: bold;
+}

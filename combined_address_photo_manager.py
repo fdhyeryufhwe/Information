@@ -84,20 +84,20 @@ class AddressManagerApp:
         self.notebook = ttk.Notebook(self.content_frame) # 将 notebook 放在 content_frame 中
         self.notebook.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # 地址管理标签页
-        # self.address_tab = ttk.Frame(self.notebook)
-        # self.notebook.add(self.address_tab, text="地址管理")
-
         # 照片上传与网站更新标签页
         self.photo_upload_tab = ttk.Frame(self.notebook)
         self.notebook.add(self.photo_upload_tab, text="照片上传与网站更新")
+
+        # 密钥管理标签页
+        self.key_management_tab = ttk.Frame(self.notebook)
+        self.notebook.add(self.key_management_tab, text="密钥管理")
 
         # 在 content_frame (现在是 address_tab) 创建之后调用 create_table
         self.create_table()
 
         # 创建界面元素
-        # self.create_widgets(self.address_tab) # 地址管理界面
         self.create_photo_uploader_widgets(self.photo_upload_tab) # 照片上传界面
+        self.create_key_management_widgets(self.key_management_tab) # 密钥管理界面
 
         # 初始填充省份下拉框
         # self.populate_provinces()
@@ -129,6 +129,15 @@ class AddressManagerApp:
                 duration_hours TEXT,
                 height TEXT,
                 weight TEXT
+            )
+        ''')
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS keys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key_hash TEXT NOT NULL UNIQUE,
+                key_type TEXT NOT NULL,
+                expiration_time REAL, -- Unix timestamp
+                plain_key TEXT -- 用于临时显示，不应该长期存储
             )
         ''')
         self.conn.commit()
@@ -1059,6 +1068,171 @@ class AddressManagerApp:
             
         sync_thread = threading.Thread(target=_regenerate_and_sync_in_thread)
         sync_thread.start()
+
+    def create_key_management_widgets(self, parent_frame):
+        key_frame = tk.LabelFrame(parent_frame, text="生成新密钥", bg='#e0e0e0', fg='#333333')
+        key_frame.pack(padx=10, pady=10, fill="x", expand=True)
+
+        ttk.Label(key_frame, text="密钥类型:").grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        self.key_type_var = tk.StringVar()
+        self.key_type_combobox = ttk.Combobox(key_frame, textvariable=self.key_type_var, state="readonly",
+                                              values=["试看密钥 (30分钟)", "选时密钥 (小时)", "长期密钥 (永久)"])
+        self.key_type_combobox.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.key_type_combobox.set("试看密钥 (30分钟)") # 默认选择
+        self.key_type_combobox.bind("<<ComboboxSelected>>", self.on_key_type_select)
+
+        self.duration_label = ttk.Label(key_frame, text="时长 (小时):")
+        self.duration_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        self.duration_entry = ttk.Entry(key_frame, width=20)
+        self.duration_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.duration_label.grid_remove() # 默认隐藏
+        self.duration_entry.grid_remove() # 默认隐藏
+
+        generate_button = ttk.Button(key_frame, text="生成密钥", command=self.generate_and_save_key)
+        generate_button.grid(row=2, column=1, padx=5, pady=5, sticky="e")
+
+        ttk.Label(key_frame, text="生成密钥:").grid(row=3, column=0, padx=5, pady=5, sticky="w")
+        self.generated_key_display = ttk.Entry(key_frame, width=40, state="readonly")
+        self.generated_key_display.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
+        ttk.Button(key_frame, text="复制", command=lambda: self.copy_to_clipboard(self.generated_key_display.get())).grid(row=3, column=2, padx=5, pady=5)
+
+        key_frame.grid_columnconfigure(1, weight=1)
+
+        # 已生成密钥列表区域
+        list_frame = tk.LabelFrame(parent_frame, text="已生成密钥", bg='#e0e0e0', fg='#333333')
+        list_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        self.keys_listbox = tk.Listbox(list_frame, height=10)
+        self.keys_listbox.pack(padx=5, pady=5, fill="both", expand=True)
+
+        key_buttons_frame = ttk.Frame(list_frame)
+        key_buttons_frame.pack(pady=5)
+
+        delete_key_button = ttk.Button(key_buttons_frame, text="删除选中密钥", command=self.delete_selected_key)
+        delete_key_button.pack(side=tk.LEFT, padx=5)
+
+        sync_keys_button = ttk.Button(key_buttons_frame, text="同步密钥到网站", command=self.export_keys_for_frontend)
+        sync_keys_button.pack(side=tk.LEFT, padx=5)
+
+        self.load_keys_listbox()
+
+    def on_key_type_select(self, event=None):
+        selected_type = self.key_type_var.get()
+        if "选时密钥" in selected_type:
+            self.duration_label.grid()
+            self.duration_entry.grid()
+        else:
+            self.duration_label.grid_remove()
+            self.duration_entry.grid_remove()
+
+    def generate_and_save_key(self):
+        import hashlib
+        import time
+        import uuid
+        from datetime import datetime, timedelta
+
+        key_type = self.key_type_var.get()
+        generated_key = str(uuid.uuid4())
+        expiration_time = None # Unix timestamp
+
+        if "试看密钥" in key_type:
+            expiration_time = (datetime.now() + timedelta(minutes=30)).timestamp()
+        elif "选时密钥" in key_type:
+            try:
+                duration_hours = float(self.duration_entry.get().strip())
+                expiration_time = (datetime.now() + timedelta(hours=duration_hours)).timestamp()
+            except ValueError:
+                messagebox.showwarning("输入错误", "请为选时密钥输入有效的时长(小时)。")
+                return
+        # 长期密钥 expiration_time 保持 None
+
+        key_hash = hashlib.sha256(generated_key.encode()).hexdigest()
+
+        try:
+            # 存储实际密钥和哈希值，方便用户查看和复制
+            self.cursor.execute("INSERT INTO keys (key_hash, key_type, expiration_time, plain_key) VALUES (?, ?, ?, ?)",
+                                (key_hash, key_type, expiration_time, generated_key))
+            self.conn.commit()
+            self.generated_key_display.config(state="normal")
+            self.generated_key_display.delete(0, tk.END)
+            self.generated_key_display.insert(0, generated_key)
+            self.generated_key_display.config(state="readonly")
+            messagebox.showinfo("成功", "密钥生成成功！请妥善保存生成的密钥。")
+            self.load_keys_listbox()
+        except Exception as e:
+            messagebox.showerror("错误", f"生成密钥失败: {e}")
+
+    def load_keys_listbox(self):
+        from datetime import datetime
+        self.keys_listbox.delete(0, tk.END)
+        try:
+            self.cursor.execute("SELECT id, key_type, expiration_time, plain_key FROM keys")
+            keys_data = self.cursor.fetchall()
+            self.active_keys_in_listbox = []
+
+            for key_id, key_type, expiration_time, plain_key in keys_data:
+                status_text = "永久有效"
+                if expiration_time is not None:
+                    exp_dt = datetime.fromtimestamp(expiration_time)
+                    if exp_dt > datetime.now():
+                        status_text = f"有效期至: {exp_dt.strftime('%Y-%m-%d %H:%M')}"
+                    else:
+                        status_text = "已过期"
+                
+                display_text = f"[{key_type}] {plain_key[:8]}... - {status_text}"
+                self.keys_listbox.insert(tk.END, display_text)
+                self.active_keys_in_listbox.append((key_id, key_type, expiration_time, plain_key)) # 存储完整的键数据
+        except Exception as e:
+            print(f"加载密钥列表失败: {e}")
+            messagebox.showerror("错误", f"加载密钥列表失败: {e}")
+
+    def delete_selected_key(self):
+        selected_indices = self.keys_listbox.curselection()
+        if not selected_indices:
+            messagebox.showwarning("未选中", "请选择要删除的密钥。")
+            return
+
+        keys_to_delete_ids = [self.active_keys_in_listbox[i][0] for i in selected_indices]
+
+        if messagebox.askyesno("确认删除", f"确定要删除选中的 {len(keys_to_delete_ids)} 个密钥吗？"):
+            try:
+                placeholders = ', '.join('?' for _ in keys_to_delete_ids)
+                self.cursor.execute(f"DELETE FROM keys WHERE id IN ({placeholders})", keys_to_delete_ids)
+                self.conn.commit()
+                messagebox.showinfo("成功", "密钥删除成功。")
+                self.load_keys_listbox()
+                self.export_keys_for_frontend() # 删除后重新同步到网站
+            except Exception as e:
+                messagebox.showerror("删除错误", f"删除密钥失败: {e}")
+
+    def export_keys_for_frontend(self):
+        import hashlib
+        import time
+        from datetime import datetime
+
+        keys_config_path = os.path.join(self.base_dir, 'keys_config.json')
+        
+        exported_keys = []
+        try:
+            self.cursor.execute("SELECT key_hash, key_type, expiration_time FROM keys")
+            all_keys = self.cursor.fetchall()
+
+            for key_hash, key_type, expiration_time in all_keys:
+                if expiration_time is None or datetime.fromtimestamp(expiration_time) > datetime.now():
+                    exported_keys.append({
+                        "hash": key_hash,
+                        "type": key_type,
+                        "exp": expiration_time # Store raw timestamp
+                    })
+            
+            with open(keys_config_path, 'w', encoding='utf-8') as f:
+                json.dump(exported_keys, f, indent=4, ensure_ascii=False)
+            
+            messagebox.showinfo("成功", "有效密钥已成功导出到 keys_config.json 文件。正在准备同步到 GitHub Pages。")
+            self.run_git_commands(commit_message="Sync valid keys_config.json to website")
+
+        except Exception as e:
+            messagebox.showerror("导出错误", f"导出密钥到 keys_config.json 失败: {e}")
 
     def __del__(self):
         if hasattr(self, 'conn') and self.conn:

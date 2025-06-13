@@ -12,6 +12,11 @@
     const itemsPerPage = 9; // 每页显示9张照片
     let paginatedPhotos = []; // 用于分页的照片数据
 
+    // Key management variables
+    let validKeys = [];
+
+    loadKeysConfig();
+
     // 函数：根据传入的照片数据数组渲染画廊
     function displayPhotos(photos) {
         galleryContainer.innerHTML = ''; // 清空画廊内容
@@ -225,4 +230,82 @@
             }
         });
     }
+
+    // Key entry modal event listener
+    document.getElementById('submitKeyButton').addEventListener('click', validateKey);
+
+    // Initial warning modal display
+    showWarningModal("本站为信息付费，并不对寻欢经历负责，请注意个人防范。\n\n凡是有要求路费/上门/定金/保证金/照片验证/视频验证/提前付费等类似行为的都是骗子，同时也请注意任何形式的推荐办卡行为，请勿上当受骗。\n\n碰到有问题的信息，请及时举报给我们删除信息。如果发布的信息涉及个人隐私，也请及时举报，我们会核实后第一时间帮你删除处理。");
 });
+
+async function loadKeysConfig() {
+    try {
+        const response = await fetch('keys_config.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        validKeys = await response.json();
+        console.log('Keys config loaded:', validKeys);
+    } catch (error) {
+        console.error('Error loading keys config:', error);
+        document.getElementById('keyMessage').textContent = '无法加载密钥配置，请联系管理员。';
+        // Optionally, prevent access if keys cannot be loaded
+    }
+}
+
+async function validateKey() {
+    const keyInput = document.getElementById('keyInput').value.trim();
+    const keyMessage = document.getElementById('keyMessage');
+    keyMessage.textContent = ''; // Clear previous messages
+
+    if (!keyInput) {
+        keyMessage.textContent = '请输入密钥。';
+        return;
+    }
+
+    // Hash the input key for comparison
+    const encoder = new TextEncoder();
+    const data = encoder.encode(keyInput);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); // convert buffer to byte array
+    const hashedKey = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); // convert bytes to hex string
+
+    console.log('Input key:', keyInput);
+    console.log('Hashed input key:', hashedKey);
+
+    const now = Date.now() / 1000; // current time in seconds (Unix timestamp)
+
+    let isValid = false;
+    for (const key of validKeys) {
+        if (key.hash === hashedKey) {
+            if (key.exp === null) { // Permanent key
+                isValid = true;
+                break;
+            } else if (key.exp > now) { // Timed key and not expired
+                isValid = true;
+                break;
+            }
+        }
+    }
+
+    if (isValid) {
+        document.getElementById('key-entry-modal').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        loadPhotos(); // Load content after successful validation
+    } else {
+        keyMessage.textContent = '密钥无效或已过期，请重试或联系管理员。';
+    }
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+function showWarningModal(message) {
+    document.getElementById('warningMessage').textContent = message;
+    document.getElementById('warningModal').style.display = 'flex'; // Use flex to center
+}
+
+function closeWarningModal() {
+    document.getElementById('warningModal').style.display = 'none';
+}

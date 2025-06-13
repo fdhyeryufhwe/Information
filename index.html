@@ -3,46 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地址照片展示</title>
+    <title>地址照片管理器</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1 id="mainTitle">地址照片展示</h1>
-    </header>
-    <main>
-        <div class="search-container">
-            <p>输入省份或城市名称进行筛选:</p>
-            <input type="text" id="searchInput" placeholder="例如: 广东, 广州">
-        </div>
-        <div id="gallery" class="gallery-container">
-            <!-- Photos will be dynamically loaded here -->
-            <p>加载中...</p>
-        </div>
-        <div id="pagination" class="pagination-container">
-            <!-- Pagination buttons will be dynamically loaded here -->
-        </div>
-    </main>
-    <div id="warningModal" class="modal">
+    <div id="key-entry-modal" class="modal">
         <div class="modal-content">
-            <h2 class="modal-title">特别提示</h2>
-            <p>本站为信息付费，并不对寻欢经历负责，请注意个人防范。</p>
-            <p>凡是有要求路费/上门/定金/保证金/照片验证/视频验证/提前付费等类似行为的都是骗子，同时也请注意任何形式的推荐办卡行为，请勿上当受骗。</p>
-            <p>碰到有问题的信息，请及时举报给我们删除信息。如果发布的信息涉及个人隐私，也请及时举报，我们会核实后第一时间帮你删除处理。</p>
-            <button id="closeModalBtn" class="close-button">关闭</button>
+            <h2>请输入密钥</h2>
+            <input type="text" id="keyInput" placeholder="在此输入密钥">
+            <button id="submitKeyButton">提交</button>
+            <p id="keyMessage" style="color: red;"></p>
         </div>
     </div>
 
-    <!-- Image Lightbox Modal -->
+    <div id="main-content" style="display: none;">
+    <div class="container">
+        <h1>地址照片管理器</h1>
+        <div class="search-section">
+            <input type="text" id="addressSearch" placeholder="搜索地址或地点">
+            <button id="searchButton">搜索</button>
+            <button id="resetSearchButton">重置</button>
+        </div>
+        <div class="gallery">
+            <p id="loading-text">正在加载照片...</p>
+        </div>
+        <div id="pagination" class="pagination-container"></div>
+    </div>
+
     <div id="imageModal" class="modal">
-        <span class="close-button">&times;</span>
-        <img class="modal-content" id="fullImage">
+        <span class="close-button" onclick="closeImageModal()">&times;</span>
+        <img class="modal-content-img" id="fullImage">
         <div id="caption"></div>
     </div>
 
-    <footer>
-        <p>&copy; 2023 地址照片管理. 保留所有权利.</p>
-    </footer>
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeWarningModal()">&times;</span>
+            <p id="warningMessage"></p>
+            <button onclick="closeWarningModal()">确定</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
+    </div>
 </body>
 </html>
