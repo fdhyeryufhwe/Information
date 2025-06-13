@@ -302,5 +302,13 @@
         "price": "800",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749564504101.jpg",
+        "full_address": "四川省成都市金牛区",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
