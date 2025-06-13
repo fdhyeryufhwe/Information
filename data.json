@@ -406,5 +406,13 @@
         "price": "500",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749566416471.jpg",
+        "full_address": "四川省成都市人民公园附近",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
