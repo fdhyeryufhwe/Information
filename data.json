@@ -102,5 +102,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749194704444.jpg",
+        "full_address": "北京省北京市潘家园",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
