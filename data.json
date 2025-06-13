@@ -558,5 +558,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749194914084.jpg",
+        "full_address": "山东省烟台市同福小区",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
