@@ -910,5 +910,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749191632457.jpg",
+        "full_address": "江苏省无锡市不详",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
