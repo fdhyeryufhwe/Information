@@ -182,5 +182,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749479170205.jpg",
+        "full_address": "吉林省长春市南关区亚泰大街天伦广场",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
