@@ -358,5 +358,13 @@
         "price": "150",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749565670876.jpg",
+        "full_address": "四川省成都市成都武侯区天府二街",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
