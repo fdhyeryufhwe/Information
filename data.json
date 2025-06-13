@@ -238,5 +238,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749480416948.jpg",
+        "full_address": "吉林省长春市皓月大路建阳街",
+        "age": "30+",
+        "price": "500",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
