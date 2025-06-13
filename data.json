@@ -1734,5 +1734,13 @@
         "price": "150",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749196442506.jpg",
+        "full_address": "辽宁省大连市车家村",
+        "age": "40+",
+        "price": "自己谈",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
