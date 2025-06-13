@@ -734,5 +734,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749193155140.jpg",
+        "full_address": "广东省广州市越秀区海珠广场地铁站F口",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
