@@ -782,5 +782,13 @@
         "price": "400",
         "height": "158",
         "weight": "94"
+    },
+    {
+        "photo_path": "images/1749183713220.jpg",
+        "full_address": "广东省深圳市坪洲地铁站附近，麻布新村",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
