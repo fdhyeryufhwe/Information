@@ -1974,5 +1974,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749641247503.png",
+        "full_address": "辽宁省锦州市广厦附近",
+        "age": "40+",
+        "price": "150",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
