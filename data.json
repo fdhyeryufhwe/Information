@@ -62,5 +62,13 @@
         "price": "600",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749189622243.jpg",
+        "full_address": "内蒙古自治区呼和浩特玉泉区",
+        "age": "30+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
