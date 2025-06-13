@@ -614,5 +614,13 @@
         "price": "500",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749569669409.jpg",
+        "full_address": "山西省大同市矿务局",
+        "age": "30+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
