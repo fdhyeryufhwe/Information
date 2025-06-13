@@ -38,5 +38,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749191032713.jpg",
+        "full_address": "上海省上海市长宁区江苏路铁站附近",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
