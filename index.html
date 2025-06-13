@@ -8,7 +8,7 @@
 </head>
 <body>
     <header>
-        <h1>地址照片展示</h1>
+        <h1 id="mainTitle">地址照片展示</h1>
     </header>
     <main>
         <div class="search-container">
@@ -20,6 +20,15 @@
             <p>加载中...</p>
         </div>
     </main>
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">特别提示</h2>
+            <p>本站为信息付费，并不对寻欢经历负责，请注意个人防范。</p>
+            <p>凡是有要求路费/上门/定金/保证金/照片验证/视频验证/提前付费等类似行为的都是骗子，同时也请注意任何形式的推荐办卡行为，请勿上当受骗。</p>
+            <p>碰到有问题的信息，请及时举报给我们删除信息。如果发布的信息涉及个人隐私，也请及时举报，我们会核实后第一时间帮你删除处理。</p>
+            <button id="closeModalBtn" class="close-button">关闭</button>
+        </div>
+    </div>
     <footer>
         <p>&copy; 2023 地址照片管理. 保留所有权利.</p>
     </footer>

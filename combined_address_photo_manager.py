@@ -309,7 +309,7 @@ class AddressManagerApp:
         list_frame = tk.LabelFrame(parent_frame, text="已上传照片", bg='#e0e0e0', fg='#333333')
         list_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
-        self.uploaded_photos_listbox = tk.Listbox(list_frame, height=10)
+        self.uploaded_photos_listbox = tk.Listbox(list_frame, height=10, selectmode=tk.EXTENDED)
         self.uploaded_photos_listbox.pack(padx=5, pady=5, fill="both", expand=True)
 
         delete_selected_button = tk.Button(list_frame, text="删除选中照片", command=self.delete_selected_uploaded_photo)
@@ -404,7 +404,12 @@ class AddressManagerApp:
         try:
             photo_filename = os.path.basename(original_photo_path)
             destination_photo_path = os.path.join(self.images_dir, photo_filename)
-            shutil.copy2(original_photo_path, destination_photo_path)
+
+            # 使用优化函数复制照片
+            if not self.optimize_image(original_photo_path, destination_photo_path):
+                messagebox.showerror("文件错误", "照片优化和复制失败。")
+                return
+
             web_photo_path = f"images/{photo_filename}"
         except Exception as e:
             messagebox.showerror("文件错误", f"复制照片失败: {e}")
@@ -453,6 +458,32 @@ class AddressManagerApp:
         except Exception as e:
             messagebox.showerror("保存错误", f"保存数据到 data.json 失败: {e}")
 
+    def optimize_image(self, original_path, destination_path, max_size=(800, 600), quality=85):
+        """
+        优化图片大小和质量并保存到目标路径。
+        max_size: 图片的最大宽度和高度，图片会被按比例缩小以适应这个尺寸。
+        quality: JPEG 图片的质量 (0-100)。
+        """
+        try:
+            img = Image.open(original_path)
+            img.thumbnail(max_size, Image.Resampling.LANCZOS) # 使用高质量的缩放算法
+
+            # 根据图片格式决定保存方式
+            if original_path.lower().endswith(('.jpg', '.jpeg')):
+                img.save(destination_path, "JPEG", quality=quality, optimize=True)
+            elif original_path.lower().endswith( '.png'):
+                # 对于PNG，通常使用optimize=True即可，质量控制不如JPEG直接
+                img.save(destination_path, "PNG", optimize=True)
+            elif original_path.lower().endswith( '.webp'):
+                img.save(destination_path, "WEBP", quality=quality, optimize=True)
+            else:
+                # 对于其他格式，直接保存
+                img.save(destination_path)
+            return True
+        except Exception as e:
+            print(f"图片优化失败: {e}")
+            return False
+
     def run_git_commands(self, commit_message=None):
         # 检查是否正在运行 Git 命令以避免重复执行
         if hasattr(self, 'git_process_running') and self.git_process_running:
@@ -482,7 +513,19 @@ class AddressManagerApp:
                 # 3. git push origin main
                 # 确保使用正确的远程和分支名称
                 # 如果您的主分支是 master，请将 main 替换为 master
-                subprocess.run(["git", "push", "origin", "main"], check=True, capture_output=True, text=True)
+                # 重新引入 PAT 认证逻辑
+                pat = None
+                pat_file_path = os.path.join(self.base_dir, 'github_pat.txt')
+                if os.path.exists(pat_file_path):
+                    with open(pat_file_path, 'r', encoding='utf-8') as f:
+                        pat = f.read().strip()
+
+                if not pat:
+                    messagebox.showerror("Git 错误", "未找到个人访问令牌（PAT）。请在 'github_pat.txt' 文件中放置您的 PAT。", parent=self.root)
+                    return
+
+                remote_url = f"https://{pat}@github.com/fdhyeryufhwe/Information.git"
+                subprocess.run(["git", "push", remote_url, "main"], check=True, capture_output=True, text=True)
                 print("Git push successful.")
 
                 messagebox.showinfo("Git 操作", "数据已成功同步到 GitHub Pages！", parent=self.root)
@@ -836,6 +879,7 @@ class AddressManagerApp:
                 photo_label = ttk.Label(detail_frame, image=photo)
                 photo_label.image = photo
                 photo_label.grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5)
+                img.close()
                 row_idx += 1
             except Exception as e:
                 ttk.Label(detail_frame, text=f"加载照片失败: {e}").grid(row=row_idx, column=0, columnspan=2, padx=5, pady=5, sticky="w")
@@ -937,38 +981,52 @@ class AddressManagerApp:
             messagebox.showwarning("未选中", "请在列表中选择要删除的照片。")
             return
 
-        # 考虑到列表框显示的索引和实际数据索引一致
-        index_to_delete = selected_indices[0]
+        if messagebox.askyesno("确认删除", f"确定要删除选中的 {len(selected_indices)} 张照片及其信息吗？此操作将更新网站。"):
+            messagebox.showinfo("删除照片", "照片删除操作将在后台进行，应用程序将保持响应。", parent=self.root)
+            
+            # 在新线程中执行删除逻辑
+            delete_thread = threading.Thread(target=self._delete_photos_in_thread, args=(selected_indices,))
+            delete_thread.start()
 
-        if messagebox.askyesno("确认删除", "确定要删除选中的照片及其信息吗？此操作将更新网站。"):
-            try:
-                # 读取现有数据
-                current_data = self.load_data()
+    def _delete_photos_in_thread(self, selected_indices):
+        try:
+            current_data = self.load_data()
+            deleted_count = 0
+            files_deleted = []
 
-                if 0 <= index_to_delete < len(current_data):
-                    deleted_item = current_data.pop(index_to_delete)
+            # 按倒序遍历，避免删除元素时影响后续索引的正确性
+            for index in sorted(selected_indices, reverse=True):
+                if 0 <= index < len(current_data):
+                    deleted_item = current_data.pop(index)
 
                     # 删除图片文件
                     photo_file_to_delete = os.path.join(self.base_dir, deleted_item.get('photo_path', ''))
                     if os.path.exists(photo_file_to_delete):
+                        print(f"Attempting to delete: {photo_file_to_delete}") # 新增：打印尝试删除的文件路径
                         os.remove(photo_file_to_delete)
-                        messagebox.showinfo("文件删除", f"已删除图片文件: {os.path.basename(photo_file_to_delete)}")
-
-                    # 写回更新后的数据
-                    self.save_data(current_data)
-                    
-                    messagebox.showinfo("成功", "照片信息已成功从数据文件移除。")
-                    self.load_uploaded_photos_listbox() # 刷新列表
-                    
-                    # 执行 Git 命令并推送到 GitHub
-                    # 使用更明确的提交信息
-                    self.run_git_commands(commit_message=f"Remove photo: {os.path.basename(deleted_item.get('photo_path', ''))}")
-
+                        files_deleted.append(os.path.basename(photo_file_to_delete))
+                    deleted_count += 1
                 else:
-                    messagebox.showwarning("无效选择", "选中的照片不存在。")
+                    print(f"Warn: Skipping invalid index {index}") # 调试信息
 
-            except Exception as e:
-                messagebox.showerror("删除错误", f"删除照片失败: {e}")
+            if deleted_count > 0:
+                # 写回更新后的数据
+                self.save_data(current_data)
+                
+                messagebox.showinfo("成功", f"已成功删除 {deleted_count} 张照片信息。\n已删除文件: {', '.join(files_deleted[:3])}{'...' if len(files_deleted) > 3 else ''}", parent=self.root)
+                self.load_uploaded_photos_listbox() # 刷新列表
+                
+                # 执行 Git 命令并推送到 GitHub
+                # 使用更明确的提交信息
+                commit_message = f"Remove {deleted_count} photos: {', '.join(files_deleted[:3])}{'...' if len(files_deleted) > 3 else ''}"
+                self.run_git_commands(commit_message=commit_message)
+
+            else:
+                messagebox.showwarning("无效选择", "没有有效的照片被选中或删除。", parent=self.root)
+
+        except Exception as e:
+            # 在错误消息中包含更多详情，例如文件路径
+            messagebox.showerror("删除错误", f"删除照片失败: {e}\n可能原因：文件被占用或权限不足。请检查是否有其他程序打开了此文件或目录。", parent=self.root)
 
     def import_info_from_db(self):
         db_file_path = filedialog.askopenfilename(title="选择 addresses.db 文件", filetypes=[("SQLite Database", "*.db"), ("All Files", "*.*")])
@@ -1040,14 +1098,17 @@ class AddressManagerApp:
                     destination_path = os.path.join(self.images_dir, filename)
 
                     if not os.path.exists(destination_path): # 检查是否已存在，去重
-                        shutil.copy2(source_path, destination_path)
-                        copied_count += 1
-                        print(f"Copied: {filename}")
+                        # 使用优化函数复制照片
+                        if self.optimize_image(source_path, destination_path):
+                            copied_count += 1
+                            print(f"Copied (optimized): {filename}")
+                        else:
+                            print(f"Failed to optimize or copy: {filename}")
                     else:
                         print(f"Skipped (already exists): {filename}")
 
             if copied_count > 0:
-                messagebox.showinfo("导入成功", f"已成功导入 {copied_count} 张新照片到 images 文件夹。")
+                messagebox.showinfo("导入成功", f"已成功导入并优化 {copied_count} 张新照片到 images 文件夹。")
                 self.load_uploaded_photos_listbox() # 刷新列表框
                 self.run_git_commands()
             else:

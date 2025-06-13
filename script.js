@@ -1,17 +1,23 @@
 ﻿document.addEventListener('DOMContentLoaded', () => {
     const galleryContainer = document.getElementById('gallery');
     const searchInput = document.getElementById('searchInput'); // 获取搜索输入框元素
+    const warningModal = document.getElementById('warningModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
     let allPhotosData = []; // 用于存储所有照片数据的数组
 
     // 函数：根据传入的照片数据数组渲染画廊
     function displayPhotos(photos) {
         galleryContainer.innerHTML = ''; // 清空画廊内容
-        if (photos.length === 0) {
+        
+        // 只显示最新9张照片
+        const photosToDisplay = photos.slice(-9); 
+
+        if (photosToDisplay.length === 0) {
             galleryContainer.innerHTML = '<p>没有找到匹配的照片。</p>';
             return;
         }
 
-        photos.forEach(item => {
+        photosToDisplay.forEach(item => {
             const photoCard = document.createElement('div');
             photoCard.classList.add('photo-card');
 
@@ -99,4 +105,19 @@
 
     // 为搜索输入框添加事件监听器
     searchInput.addEventListener('input', filterGallery);
+
+    // 显示警告模态框
+    if (warningModal && closeModalBtn) {
+        warningModal.style.display = 'flex';
+        closeModalBtn.addEventListener('click', () => {
+            warningModal.style.display = 'none';
+        });
+
+        // 点击模态框外部区域也可以关闭
+        window.addEventListener('click', (event) => {
+            if (event.target === warningModal) {
+                warningModal.style.display = 'none';
+            }
+        });
+    }
 });
