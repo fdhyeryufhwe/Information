@@ -1854,5 +1854,13 @@
         "price": "自己谈",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749191100354.jpg",
+        "full_address": "辽宁省沈阳市于洪区于洪广场附近",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
