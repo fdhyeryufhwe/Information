@@ -1206,5 +1206,13 @@
         "price": "500",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749386020524.jpg",
+        "full_address": "河北省秦皇岛市在水一方小区",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
