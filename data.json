@@ -214,5 +214,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749479878879.jpg",
+        "full_address": "吉林省长春市绿园区AI健康馆旁边",
+        "age": "30+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
