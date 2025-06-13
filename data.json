@@ -54,5 +54,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749195533128.jpg",
+        "full_address": "云南省昆明市盘龙区同德广场",
+        "age": "30+",
+        "price": "600",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
