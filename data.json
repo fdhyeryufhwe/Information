@@ -1814,5 +1814,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749459726870.jpg",
+        "full_address": "辽宁省抚顺市将军市场",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
