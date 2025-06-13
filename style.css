@@ -383,3 +383,53 @@ footer {
     margin-top: 15px;
     font-weight: bold;
 }
+
+/* Main website title styles */
+.main-website-title {
+    font-family: 'Arial Black', Gadget, sans-serif; /* 美术字体 */
+    font-size: 3em; /* 大字体 */
+    font-weight: bold;
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    /* 字体颜色渐变 */
+    background-image: linear-gradient(to right, #ff7e5f, #feb47b); /* 从橘色到桃色渐变 */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent; /* Fallback for browsers that don't support background-clip */
+}
+
+/* Search section styling for centering */
+.search-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+}
+
+.search-section input[type="text"] {
+    flex-grow: 1;
+    max-width: 400px; /* Limit width */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px; /* Space between input and buttons */
+    font-size: 1em;
+}
+
+.search-section button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px; /* For wrap on small screens */
+}
+
+.search-section button:hover {
+    background-color: #0056b3;
+}
