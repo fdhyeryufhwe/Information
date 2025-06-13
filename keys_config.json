@@ -3,10 +3,5 @@
         "hash": "a3492e5350a9eb8f9e5ae144ddb1b7036e61c92f4ec0cdc039067b0f4f48e25f",
         "type": "长期密钥 (永久)",
         "exp": null
-    },
-    {
-        "hash": "24f7a2d7910cf1a0a2f769113dbd22c0d925f01fb3bd0dd552da1f8abbf960f5",
-        "type": "试看密钥 (30分钟)",
-        "exp": 1749819586.822786
     }
 ]
