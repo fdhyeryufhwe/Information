@@ -2,7 +2,9 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f7f6;
+    background-color: #e8f0f8; /* A very light blue-grey for a fresh modern feel */
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0); /* Subtle dot pattern */
+    background-size: 20px 20px;
     color: #333;
     line-height: 1.6;
 }
@@ -65,17 +67,19 @@ main {
 }
 
 .photo-card {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: transform 0.2s ease-in-out;
+    background-color: #ffffff; /* Keep card background white */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Softer, more pronounced shadow */
+    transition: all 0.3s ease-in-out; /* Smoother transitions */
+    overflow: hidden; /* Ensure content stays within borders */
+    border: none; /* Remove explicit border, rely on shadow */
     display: flex;
     flex-direction: column;
 }
 
 .photo-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-10px) scale(1.02); /* More noticeable hover effect */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); /* Enhanced shadow on hover */
 }
 
 .photo-card img {
@@ -83,26 +87,36 @@ main {
     height: 250px; /* Fixed height for images */
     object-fit: cover; /* Cover the area, crop if necessary */
     display: block;
-    border-bottom: 1px solid #eee;
+    border-bottom: none; /* Remove bottom border */
+    filter: brightness(0.98); /* Slight desaturation for modern feel */
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
 }
 
 .card-content {
-    padding: 15px;
+    background-color: #f8fcfd; /* Very light, almost white background for info area */
+    /* Light dark-patterned wallpaper simulation (subtle cross-hatch) */
+    background-image: linear-gradient(45deg, rgba(0,0,0,.04) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.04) 75%, rgba(0,0,0,.04)),
+                      linear-gradient(45deg, rgba(0,0,0,.04) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.04) 75%, rgba(0,0,0,.04));
+    background-size: 25px 25px; /* Size of the pattern */
+    background-position: 0 0, 12.5px 12.5px; /* Offset the second pattern for a grid effect */
+    padding: 20px; /* More padding */
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
 }
 
 .card-content h3 {
-    color: #3f51b5;
+    color: #2c3e50; /* Darker, modern heading color */
+    font-size: 1.4em; /* Slightly larger heading */
     margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.25rem;
+    margin-bottom: 12px;
 }
 
 .card-content p {
-    margin: 5px 0;
-    font-size: 0.95rem;
+    font-size: 1em; /* Slightly larger text */
     color: #555;
 }
 
@@ -155,7 +169,7 @@ footer {
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #ffffff;
     margin: auto; /* For older browsers, flexbox handles centering */
     padding: 25px;
     border: 1px solid #888;
@@ -386,18 +400,17 @@ footer {
 
 /* Main website title styles */
 .main-website-title {
-    font-family: 'Arial Black', Gadget, sans-serif; /* 美术字体 */
-    font-size: 3em; /* 大字体 */
-    font-weight: bold;
-    text-align: center;
-    margin-top: 30px;
-    margin-bottom: 20px;
-    /* 字体颜色渐变 */
-    background-image: linear-gradient(to right, #ff7e5f, #feb47b); /* 从橘色到桃色渐变 */
+    font-family: 'Georgia', serif; /* A more elegant, readable serif font, or a modern sans-serif like 'Roboto', 'Open Sans' */
+    font-size: 3.8em; /* Significantly larger */
+    letter-spacing: -0.5px; /* Tighter letter spacing */
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.25); /* More prominent shadow */
+    /* Keep existing gradient colors but maybe adjust for vibrancy */
+    background-image: linear-gradient(to right, #4CAF50, #8BC34A, #FFEB3B); /* More vibrant green-yellow gradient */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    color: transparent; /* Fallback for browsers that don't support background-clip */
+    color: transparent; /* Fallback */
+    padding: 10px 0; /* Add some padding */
 }
 
 /* Search section styling for centering */
@@ -413,23 +426,85 @@ footer {
     flex-grow: 1;
     max-width: 400px; /* Limit width */
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border: 1px solid #e0e0e0; /* Lighter border */
+    border-radius: 10px; /* More rounded */
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.08); /* Inner shadow for depth */
     margin-right: 10px; /* Space between input and buttons */
     font-size: 1em;
 }
 
 .search-section button {
-    padding: 10px 15px;
-    background-color: #007bff;
+    padding: 12px 20px;
+    background-color: #007bff; /* A vibrant blue */
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px; /* More rounded */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15); /* More subtle shadow */
     cursor: pointer;
     font-size: 1em;
     margin-top: 10px; /* For wrap on small screens */
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .search-section button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift */
+}
+
+/* --- NEW MODERN DESIGN STYLES --- */
+
+/* Adjust search section for modern feel */
+.search-section {
+    background-color: #ffffff; /* Clean white background */
+    border-radius: 12px; /* More rounded */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Softer shadow */
+    padding: 20px 25px; /* More padding */
+    margin-bottom: 30px;
+    max-width: 700px; /* Limit width for better visual balance */
+    margin-left: auto; /* Center the search section */
+    margin-right: auto; /* Center the search section */
+}
+
+/* Ensure container class is used correctly */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.gallery {
+    padding: 0; /* Remove padding from gallery as cards handle it now */
+}
+
+/* Adjust modal content for consistency */
+.modal-content {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.modal-title {
+    color: #e74c3c; /* A strong red for warnings */
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    background-color: #3498db; /* A friendly blue */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.close-button:hover {
+    background-color: #2980b9;
+}
+
+#imageModal .close-button {
+    color: #ffffff;
+    background: none; /* Keep specific override */
+    box-shadow: none; /* Remove shadow for this one */
+}
+
+#imageModal .close-button:hover, #imageModal .close-button:focus {
+    color: #eeeeee;
 }
