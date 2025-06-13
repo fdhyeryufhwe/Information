@@ -742,5 +742,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749193322082.jpg",
+        "full_address": "广东省广州市海珠区江南西A出口附近",
+        "age": "30+",
+        "price": "450",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
