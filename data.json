@@ -1990,5 +1990,13 @@
         "price": "300",
         "height": "1.6",
         "weight": "120"
+    },
+    {
+        "photo_path": "images/1749185368642.jpg",
+        "full_address": "重庆省重庆市沙坪坝三峡广场附近金沙国际",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
