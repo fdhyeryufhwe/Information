@@ -902,5 +902,13 @@
         "price": "500",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749191434906.jpg",
+        "full_address": "江苏省无锡市新区春城家园B",
+        "age": "30+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
