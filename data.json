@@ -478,5 +478,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749194828158.jpg",
+        "full_address": "山东省廊坊市燕郊东贸国际小区",
+        "age": "40+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
