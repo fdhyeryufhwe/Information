@@ -94,5 +94,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749193624456.jpg",
+        "full_address": "北京省北京市朝阳区西大望路附近",
+        "age": "40+",
+        "price": "200",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
