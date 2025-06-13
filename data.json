@@ -278,5 +278,13 @@
         "price": "150",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749563914114.jpg",
+        "full_address": "四川省成都市武侯区玉林路",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
