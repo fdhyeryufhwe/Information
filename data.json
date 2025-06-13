@@ -1678,5 +1678,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/a307c0b9b5cf820a361d532ab98a04dc.png",
+        "full_address": "甘肃省兰州市城关区张掖路92号",
+        "age": "20+",
+        "price": "600",
+        "height": "1.58",
+        "weight": "98"
     }
 ]
