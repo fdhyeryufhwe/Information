@@ -1718,5 +1718,13 @@
         "price": "50",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749189756319.jpg",
+        "full_address": "辽宁省大连市不详",
+        "age": "40+",
+        "price": "150",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
