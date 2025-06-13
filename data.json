@@ -470,5 +470,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749196330190.jpg",
+        "full_address": "山东省东营市东城东二路",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
