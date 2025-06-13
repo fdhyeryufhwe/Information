@@ -142,5 +142,13 @@
         "price": "400",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749478304382.jpg",
+        "full_address": "吉林省长春市永春商城一号门",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
