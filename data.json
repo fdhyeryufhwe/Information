@@ -270,5 +270,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749190531033.jpg",
+        "full_address": "四川省成都市成华区双林社区1号门",
+        "age": "40+",
+        "price": "150",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
