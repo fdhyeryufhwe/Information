@@ -1758,5 +1758,13 @@
         "price": "600",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/photo_2025-03-25_16-14-32.jpg",
+        "full_address": "辽宁省大连市甘井子区",
+        "age": "20+",
+        "price": "600",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
