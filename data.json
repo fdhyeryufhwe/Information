@@ -550,5 +550,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749194342232.jpg",
+        "full_address": "山东省淄博市张店 美食街附近",
+        "age": "30+",
+        "price": "400",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
