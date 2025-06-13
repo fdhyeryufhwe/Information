@@ -454,5 +454,13 @@
         "price": "300",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749188180805.jpg",
+        "full_address": "安徽省合肥市火车站附近，铜陵北路上",
+        "age": "40+",
+        "price": "300",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
