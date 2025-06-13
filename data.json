@@ -1694,5 +1694,13 @@
         "price": "500",
         "height": "1.6",
         "weight": "100"
+    },
+    {
+        "photo_path": "images/1749726477354.jpg",
+        "full_address": "甘肃省兰州市不详",
+        "age": "20+",
+        "price": "700",
+        "height": "N/A",
+        "weight": "N/A"
     }
 ]
