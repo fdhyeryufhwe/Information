@@ -203,6 +203,58 @@ footer {
     background-color: #303f9f;
 }
 
+/* Image Lightbox Modal Specific Styles */
+#imageModal.modal {
+    /* Reusing .modal base styles, just ensuring it's hidden by default and flex for centering */
+    display: none; /* Hidden by default */
+    background-color: rgba(0,0,0,0.9); /* Darker overlay for images */
+    /* Inherits flex properties for centering from .modal */
+}
+
+#imageModal .modal-content {
+    margin: auto; /* Center the image within the modal */
+    display: block; /* Make it a block element to control width */
+    max-width: 90%; /* Max width of the image */
+    max-height: 90vh; /* Max height of the image (90% of viewport height) */
+    object-fit: contain; /* Ensure the entire image is visible, scale down if necessary */
+    animation: zoomIn 0.6s; /* Animation for image appearance */
+}
+
+@keyframes zoomIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+#imageModal #caption {
+    margin-top: 15px;
+    display: block;
+    color: #ccc;
+    font-size: 17px;
+    padding: 10px 0;
+    text-align: center;
+}
+
+#imageModal .close-button {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    background: none; /* Remove background from the generic close-button style */
+    border: none; /* Remove border */
+    padding: 0; /* Remove padding */
+    cursor: pointer;
+}
+
+#imageModal .close-button:hover,
+#imageModal .close-button:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .gallery-container {

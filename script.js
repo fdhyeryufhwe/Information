@@ -3,6 +3,10 @@
     const searchInput = document.getElementById('searchInput'); // 获取搜索输入框元素
     const warningModal = document.getElementById('warningModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
+    const imageModal = document.getElementById('imageModal'); // 新增：图片模态框
+    const fullImage = document.getElementById('fullImage');   // 新增：模态框内的图片元素
+    const imageCaption = document.getElementById('caption'); // 新增：图片标题
+    const imageModalCloseBtn = imageModal ? imageModal.querySelector('.close-button') : null; // 新增：图片模态框关闭按钮
     let allPhotosData = []; // 用于存储所有照片数据的数组
 
     // 函数：根据传入的照片数据数组渲染画廊
@@ -28,6 +32,15 @@
                 img.src = './images/placeholder.jpg'; // 如果图片加载失败，显示占位符图片
                 img.alt = '图片加载失败';
             };
+
+            // 添加点击事件监听器，显示完整照片
+            img.addEventListener('click', () => {
+                if (imageModal && fullImage && imageCaption) {
+                    fullImage.src = item.photo_path; // 显示完整尺寸的图片
+                    imageCaption.textContent = item.full_address || '无地址信息';
+                    imageModal.style.display = 'flex'; // 显示模态框
+                }
+            });
 
             const cardContent = document.createElement('div');
             cardContent.classList.add('card-content');
@@ -117,6 +130,18 @@
         window.addEventListener('click', (event) => {
             if (event.target === warningModal) {
                 warningModal.style.display = 'none';
+            }
+        });
+    }
+
+    // 图片模态框关闭逻辑
+    if (imageModal && imageModalCloseBtn) {
+        imageModalCloseBtn.addEventListener('click', () => {
+            imageModal.style.display = 'none';
+        });
+        window.addEventListener('click', (event) => {
+            if (event.target === imageModal) {
+                imageModal.style.display = 'none';
             }
         });
     }
