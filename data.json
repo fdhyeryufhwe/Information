@@ -1062,5 +1062,13 @@
         "price": "200",
         "height": "N/A",
         "weight": "N/A"
+    },
+    {
+        "photo_path": "images/1749457066142(1).jpg",
+        "full_address": "河北省廊坊市广阳区",
+        "age": "20+",
+        "price": "400",
+        "height": "1.56",
+        "weight": "110"
     }
 ]
